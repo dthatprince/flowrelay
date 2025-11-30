@@ -8,7 +8,7 @@ import uvicorn
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Transport Delivery API", version="1.0.0")
+app = FastAPI(title="Flow Relay API", version="1.0.0")
 
 # Include routers
 app.include_router(auth.router)
@@ -17,7 +17,7 @@ app.include_router(admin.router)
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to Transport Delivery API"}
+    return {"message": "Welcome to Flow Relay API"}
 
 # Configure CORS
 app.add_middleware(
