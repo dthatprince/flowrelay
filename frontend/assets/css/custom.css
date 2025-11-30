@@ -1,5 +1,8 @@
 /* Custom Styles for Transport Delivery App */
-
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
 /* Toast Notifications */
 .toast-notification {
   position: fixed;
