@@ -29,8 +29,9 @@ async def send_verification_email(email: str, token: str):
         <p>Or copy this link: {verification_link}</p>
         """
 
-        # Send email using Resend with default sender
+        # Send email using Resend
         email_response = resend.Emails.send({
+            "from": "FlowRelay <onboarding@resend.dev>",
             "to": [email],
             "subject": "Verify Your FlowRelay Email",
             "html": html,
