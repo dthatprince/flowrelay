@@ -1,38 +1,37 @@
-#def send_verification_email(email: str, token: str):
-#    """
-#    Simulate sending email - in production, use actual email service
-#    like SendGrid, AWS SES, or SMTP
-#    """
-#    verification_link = f"http://localhost:8000/verify-email?token={token}"
-#    print(f"Verification email sent to {email}: {verification_link}")
-    # In production:
-    # - Use email service provider
-    # - Send HTML email template
-    # - Handle email delivery errors
-
 import os
+import logging
 from fastapi_mail import FastMail, MessageSchema
-from config import conf   # <-- IMPORT your real config
+from config import conf
+
+logger = logging.getLogger(__name__)
 
 async def send_verification_email(email: str, token: str):
-    BASE_URL = os.getenv("BASE_URL", "https://flowrelay.onrender.com")
-    verification_link = f"{BASE_URL}/verify-email?token={token}"
-
-    html = f"""
-    <h2>FlowRelay - Email Verification</h2>
-    <p>Click below to verify your email:</p>
-    <a href="{verification_link}"
-       style="padding:10px 20px;background:#4CAF50;color:white;border-radius:5px;text-decoration:none;">
-       Verify Email
-    </a>
     """
+    Send verification email asynchronously
+    """
+    try:
+        BASE_URL = os.getenv("BASE_URL", "https://flowrelay.onrender.com")
+        verification_link = f"{BASE_URL}/verify-email?token={token}"
 
-    message = MessageSchema(
-        subject="Verify Your FlowRelay Email",
-        recipients=[email],
-        body=html,
-        subtype="html",
-    )
+        html = f"""
+        <h2>FlowRelay - Email Verification</h2>
+        <p>Click below to verify your email:</p>
+        <a href="{verification_link}"
+           style="padding:10px 20px;background:#4CAF50;color:white;border-radius:5px;text-decoration:none;">
+           Verify Email
+        </a>
+        """
 
-    fm = FastMail(conf)
-    await fm.send_message(message)
+        message = MessageSchema(
+            subject="Verify Your FlowRelay Email",
+            recipients=[email],
+            body=html,
+            subtype="html",
+        )
+
+        fm = FastMail(conf)
+        await fm.send_message(message)
+        logger.info(f"Verification email sent to {email}")
+    except Exception as e:
+        logger.error(f"Failed to send verification email to {email}: {str(e)}")
+        raise

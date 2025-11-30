@@ -13,6 +13,9 @@ from config import ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter(prefix="", tags=["Authentication"])
 
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+# ... other imports ...
+
 @router.post("/signup", response_model=dict)
 def signup(user: UserSignup, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     # Check if user exists
@@ -40,10 +43,11 @@ def signup(user: UserSignup, background_tasks: BackgroundTasks, db: Session = De
     db.commit()
     db.refresh(new_user)
     
-    # Send verification email
+    # Send verification email (async background task)
     background_tasks.add_task(send_verification_email, user.email, verification_token)
     
     return {"message": "User created. Please check your email to verify your account."}
+
 
 @router.get("/verify-email")
 def verify_email(token: str, db: Session = Depends(get_db)):
