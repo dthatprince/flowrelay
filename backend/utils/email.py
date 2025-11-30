@@ -15,7 +15,7 @@ from fastapi_mail import FastMail, MessageSchema
 from config import conf   # <-- IMPORT your real config
 
 async def send_verification_email(email: str, token: str):
-    BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+    BASE_URL = os.getenv("BASE_URL", "https://flowrelay.onrender.com")
     verification_link = f"{BASE_URL}/verify-email?token={token}"
 
     html = f"""
