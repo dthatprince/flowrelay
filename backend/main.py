@@ -21,7 +21,7 @@ def root():
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://flowrelay.onrender.com"],  # In production, specify your domain
+    allow_origins=["https://flowrelay.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
