@@ -29,3 +29,4 @@ conf = ConnectionConfig(
 # Promailer config
 PROMAILER_API_KEY = os.getenv("PROMAILER_API_KEY")
 FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@promailer.dev")
+BASE_URL=os.getenv("BASE_URL")
