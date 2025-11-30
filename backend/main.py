@@ -22,7 +22,10 @@ def root():
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://flowrelay.onrender.com"],
+    allow_origins=[
+        "https://flowrelay.onrender.com", 
+        "https://dthatprince.github.io"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
