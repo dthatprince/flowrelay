@@ -83,9 +83,9 @@ class AuthManager {
         }
 
         if (user.role === 'admin') {
-            window.location.href = '/admin/dashboard.html';
+            window.location.href = './admin/dashboard.html';
         } else if (user.role === 'client') {
-            window.location.href = '/client/dashboard.html';
+            window.location.href = './client/dashboard.html';
         }
     }
 
