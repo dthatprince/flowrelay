@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Assign Driver - Transport Delivery</title>
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link id="pagestyle" href="../assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+  <link href="../assets/css/custom.css" rel="stylesheet" />
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  <!-- Sidebar -->
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand m-0" href="dashboard.html">
+        <span class="ms-1 font-weight-bold">Admin Panel</span>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0">
+    <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-home text-primary"></i>
+            </div>
+            <span class="nav-link-text ms-1">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="users.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-users text-info"></i>
+            </div>
+            <span class="nav-link-text ms-1">Manage Users</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="offers.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-truck text-warning"></i>
+            </div>
+            <span class="nav-link-text ms-1">Manage Offers</span>
+          </a>
+        </li>
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account</h6>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link logout-btn" href="#">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-sign-out-alt text-danger"></i>
+            </div>
+            <span class="nav-link-text ms-1">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <!-- Navbar -->
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" navbar-scroll="true">
+      <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="dashboard.html">Dashboard</a></li>
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="offers.html">Offers</a></li>
+            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Assign Driver</li>
+          </ol>
+          <h6 class="font-weight-bolder mb-0">Assign Driver to Offer</h6>
+        </nav>
+        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+          <div class="ms-md-auto pe-md-3 d-flex align-items-center"></div>
+          <ul class="navbar-nav justify-content-end">
+            <li class="nav-item d-flex align-items-center">
+              <a href="#" class="nav-link text-body font-weight-bold px-0">
+                <i class="fa fa-user me-sm-1"></i>
+                <span class="d-sm-inline d-none user-name">Admin</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+      <div class="row">
+        <!-- Offer Details Card -->
+        <div class="col-lg-5">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6>Offer Details</h6>
+            </div>
+            <div class="card-body" id="offerDetailsCard">
+              <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading offer details...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Driver Assignment Form -->
+        <div class="col-lg-7">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6>Driver Information</h6>
+            </div>
+            <div class="card-body">
+              <form id="assignDriverForm">
+                <input type="hidden" id="offerId">
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="driverFirstName" class="form-control-label">Driver First Name *</label>
+                      <input type="text" class="form-control" id="driverFirstName" placeholder="John" required>
+                      <small class="text-muted">Client will see this name</small>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="driverPhone" class="form-control-label">Driver Phone Number *</label>
+                      <input type="tel" class="form-control" id="driverPhone" placeholder="+1 234 567 8900" required>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="horizontal dark">
+                <h6 class="text-uppercase text-xs font-weight-bolder">Vehicle Information</h6>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="vehicleMake" class="form-control-label">Vehicle Make *</label>
+                      <input type="text" class="form-control" id="vehicleMake" placeholder="e.g., Toyota, Ford" required>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="vehicleModel" class="form-control-label">Vehicle Model *</label>
+                      <input type="text" class="form-control" id="vehicleModel" placeholder="e.g., Camry, F-150" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="vehicleColor" class="form-control-label">Vehicle Color *</label>
+                      <input type="text" class="form-control" id="vehicleColor" placeholder="e.g., Black, White" required>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="vehiclePlate" class="form-control-label">License Plate Number *</label>
+                      <input type="text" class="form-control" id="vehiclePlate" placeholder="e.g., ABC-1234" required>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="horizontal dark">
+                <h6 class="text-uppercase text-xs font-weight-bolder">Offer Status</h6>
+
+                <div class="row">
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label for="offerStatus" class="form-control-label">Update Status *</label>
+                      <select class="form-select" id="offerStatus" required>
+                        <option value="matched">Matched - Driver assigned</option>
+                        <option value="in_progress">In Progress - Delivery started</option>
+                        <option value="completed">Completed - Delivery finished</option>
+                        <option value="cancelled">Cancelled - Delivery cancelled</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="alert alert-info mt-3" role="alert">
+                  <i class="fas fa-info-circle me-2"></i>
+                  <strong>Client Visibility:</strong> The client will see the driver's first name and complete vehicle information (make, model, color, and license plate).
+                </div>
+
+                <div class="row mt-4">
+                  <div class="col-12">
+                    <button type="submit" class="btn bg-gradient-primary" id="submitBtn">
+                      <i class="fas fa-user-check me-2"></i>Assign Driver
+                    </button>
+                    <a href="offers.html" class="btn btn-outline-secondary">
+                      <i class="fas fa-arrow-left me-2"></i>Back to Offers
+                    </a>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../assets/js/core/popper.min.js"></script>
+  <script src="../assets/js/core/bootstrap.min.js"></script>
+  <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="../assets/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
+  
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  
+  <script>
+    // Check authentication
+    if (!auth.requireAdmin()) {
+      window.location.href = '../index.html';
+    }
+
+    // Get offer ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const offerId = urlParams.get('id');
+
+    if (!offerId) {
+      showToast('No offer ID specified', 'error');
+      setTimeout(() => {
+        window.location.href = 'offers.html';
+      }, 2000);
+    }
+
+    let currentOffer = null;
+    let allUsers = [];
+
+    // Load offer details
+    async function loadOfferDetails() {
+      try {
+        const [offers, users] = await Promise.all([
+          api.getAllOffers(),
+          api.getAllUsers()
+        ]);
+
+        allUsers = users;
+        currentOffer = offers.find(o => o.id == offerId);
+
+        if (!currentOffer) {
+          showToast('Offer not found', 'error');
+          setTimeout(() => window.location.href = 'offers.html', 2000);
+          return;
+        }
+
+        displayOfferDetails(currentOffer);
+        prefillDriverInfo(currentOffer);
+
+      } catch (error) {
+        showToast('Failed to load offer details', 'error');
+        document.getElementById('offerDetailsCard').innerHTML = `
+          <div class="alert alert-danger">Failed to load offer</div>
+        `;
+      }
+    }
+
+    // Display offer details
+    function displayOfferDetails(offer) {
+      const client = allUsers.find(u => u.id === offer.client_id);
+      const clientEmail = client ? client.email : 'Unknown';
+
+      const html = `
+        <div class="mb-3">
+          <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Offer ID</h6>
+          <p class="text-sm font-weight-bold mb-0">#${offer.id}</p>
+        </div>
+        <div class="mb-3">
+          <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Client</h6>
+          <p class="text-sm mb-0">${clientEmail}</p>
+          <p class="text-xs text-secondary mb-0">${offer.company_representative}</p>
+        </div>
+        <div class="mb-3">
+          <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Description</h6>
+          <p class="text-sm mb-0">${offer.description}</p>
+        </div>
+        <div class="mb-3">
+          <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Pickup</h6>
+          <p class="text-sm mb-0">${offer.pickup_date} at ${offer.pickup_time}</p>
+          <p class="text-xs text-secondary mb-0">${offer.pickup_address}</p>
+        </div>
+        <div class="mb-3">
+          <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Dropoff</h6>
+          <p class="text-xs text-secondary mb-0">${offer.dropoff_address}</p>
+        </div>
+        <div class="mb-3">
+          <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Current Status</h6>
+          <span class="badge badge-sm bg-gradient-${getStatusBadge(offer.status)}">${getStatusDisplay(offer.status)}</span>
+        </div>
+        ${offer.additional_service ? `
+          <div class="mb-3">
+            <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Additional Services</h6>
+            <p class="text-sm mb-0">${offer.additional_service}</p>
+          </div>
+        ` : ''}
+      `;
+
+      document.getElementById('offerDetailsCard').innerHTML = html;
+    }
+
+    // Pre-fill driver info if already assigned
+    function prefillDriverInfo(offer) {
+      document.getElementById('offerId').value = offer.id;
+
+      if (offer.driver_first_name) {
+        document.getElementById('driverFirstName').value = offer.driver_first_name;
+        document.getElementById('driverPhone').value = offer.driver_phone;
+        document.getElementById('vehicleMake').value = offer.vehicle_make;
+        document.getElementById('vehicleModel').value = offer.vehicle_model;
+        document.getElementById('vehicleColor').value = offer.vehicle_color;
+        document.getElementById('vehiclePlate').value = offer.vehicle_plate;
+        document.getElementById('offerStatus').value = offer.status;
+      } else {
+        document.getElementById('offerStatus').value = 'matched';
+      }
+    }
+
+    // Handle form submission
+    document.getElementById('assignDriverForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const driverData = {
+        driver_first_name: document.getElementById('driverFirstName').value,
+        driver_phone: document.getElementById('driverPhone').value,
+        vehicle_make: document.getElementById('vehicleMake').value,
+        vehicle_model: document.getElementById('vehicleModel').value,
+        vehicle_color: document.getElementById('vehicleColor').value,
+        vehicle_plate: document.getElementById('vehiclePlate').value,
+        status: document.getElementById('offerStatus').value
+      };
+
+      // Validation
+      if (!driverData.driver_first_name || !driverData.driver_phone || 
+          !driverData.vehicle_make || !driverData.vehicle_model || 
+          !driverData.vehicle_color || !driverData.vehicle_plate) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+      }
+
+      // Validate phone number
+      if (!validatePhone(driverData.driver_phone)) {
+        showToast('Please enter a valid phone number', 'error');
+        return;
+      }
+
+      showLoading('submitBtn');
+
+      try {
+        await api.assignDriver(offerId, driverData);
+        showToast('Driver assigned successfully!', 'success');
+
+        setTimeout(() => {
+          window.location.href = 'offers.html';
+        }, 1500);
+
+      } catch (error) {
+        hideLoading('submitBtn', '<i class="fas fa-user-check me-2"></i>Assign Driver');
+        showToast(error.message || 'Failed to assign driver', 'error');
+      }
+    });
+
+    // Load offer details on page load
+    loadOfferDetails();
+  </script>
+</body>
+
+</html>

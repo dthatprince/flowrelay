@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Manage Offers - Transport Delivery</title>
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link id="pagestyle" href="../assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+  <link href="../assets/css/custom.css" rel="stylesheet" />
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  <!-- Sidebar -->
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand m-0" href="dashboard.html">
+        <span class="ms-1 font-weight-bold">Admin Panel</span>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0">
+    <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-home text-primary"></i>
+            </div>
+            <span class="nav-link-text ms-1">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="users.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-users text-info"></i>
+            </div>
+            <span class="nav-link-text ms-1">Manage Users</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="offers.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-truck text-warning"></i>
+            </div>
+            <span class="nav-link-text ms-1">Manage Offers</span>
+          </a>
+        </li>
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account</h6>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link logout-btn" href="#">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-sign-out-alt text-danger"></i>
+            </div>
+            <span class="nav-link-text ms-1">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <!-- Navbar -->
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" navbar-scroll="true">
+      <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="dashboard.html">Dashboard</a></li>
+            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Offers</li>
+          </ol>
+          <h6 class="font-weight-bolder mb-0">Manage Offers</h6>
+        </nav>
+        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+          <div class="ms-md-auto pe-md-3 d-flex align-items-center">
+            <div class="input-group">
+              <span class="input-group-text text-body"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" placeholder="Search offers..." id="searchInput">
+            </div>
+          </div>
+          <ul class="navbar-nav justify-content-end">
+            <li class="nav-item d-flex align-items-center">
+              <a href="#" class="nav-link text-body font-weight-bold px-0">
+                <i class="fa fa-user me-sm-1"></i>
+                <span class="d-sm-inline d-none user-name">Admin</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+      <!-- Filter Buttons -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
+            <button type="button" class="btn btn-sm btn-outline-warning" data-filter="pending">Pending</button>
+            <button type="button" class="btn btn-sm btn-outline-info" data-filter="matched">Matched</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-filter="in_progress">In Progress</button>
+            <button type="button" class="btn btn-sm btn-outline-success" data-filter="completed">Completed</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-filter="cancelled">Cancelled</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Offers Table -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6>All Transport Offers</h6>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+              <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0">
+                  <thead>
+                    <tr>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ID</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Client</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Description</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Pickup</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Driver</th>
+                      <th class="text-secondary opacity-7"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="offersTableBody">
+                    <tr>
+                      <td colspan="7" class="text-center py-4">Loading offers...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- View Offer Modal -->
+  <div class="modal fade" id="viewOfferModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Offer Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="offerDetailsContent">
+          Loading...
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="assignDriverBtn">Assign Driver</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign Driver Modal -->
+  <div class="modal fade" id="assignDriverModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Assign Driver to Offer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="assignDriverForm">
+            <input type="hidden" id="assignOfferId">
+            <div class="mb-3">
+              <label for="driverFirstName" class="form-label">Driver First Name *</label>
+              <input type="text" class="form-control" id="driverFirstName" required>
+            </div>
+            <div class="mb-3">
+              <label for="driverPhone" class="form-label">Driver Phone Number *</label>
+              <input type="tel" class="form-control" id="driverPhone" required>
+            </div>
+            <div class="mb-3">
+              <label for="vehicleMake" class="form-label">Vehicle Make *</label>
+              <input type="text" class="form-control" id="vehicleMake" placeholder="e.g., Toyota" required>
+            </div>
+            <div class="mb-3">
+              <label for="vehicleModel" class="form-label">Vehicle Model *</label>
+              <input type="text" class="form-control" id="vehicleModel" placeholder="e.g., Camry" required>
+            </div>
+            <div class="mb-3">
+              <label for="vehicleColor" class="form-label">Vehicle Color *</label>
+              <input type="text" class="form-control" id="vehicleColor" placeholder="e.g., Black" required>
+            </div>
+            <div class="mb-3">
+              <label for="vehiclePlate" class="form-label">Vehicle Plate Number *</label>
+              <input type="text" class="form-control" id="vehiclePlate" placeholder="e.g., ABC-1234" required>
+            </div>
+            <div class="mb-3">
+              <label for="offerStatus" class="form-label">Update Status *</label>
+              <select class="form-select" id="offerStatus" required>
+                <option value="matched">Matched</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div class="alert alert-info" role="alert">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Note:</strong> Client will see driver's first name and vehicle details (make, model, color, plate).
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveDriverBtn">Assign Driver</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/core/popper.min.js"></script>
+  <script src="../assets/js/core/bootstrap.min.js"></script>
+  <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="../assets/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
+  
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  
+  <script>
+    // Check authentication
+    if (!auth.requireAdmin()) {
+      window.location.href = '../index.html';
+    }
+
+    let allOffers = [];
+    let allUsers = [];
+    let currentOfferId = null;
+
+    // Load all offers and users
+    async function loadData() {
+      try {
+        [allOffers, allUsers] = await Promise.all([
+          api.getAllOffers(),
+          api.getAllUsers()
+        ]);
+        
+        // Check for status filter in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const statusFilter = urlParams.get('status');
+        
+        if (statusFilter) {
+          const filtered = allOffers.filter(o => o.status === statusFilter);
+          displayOffers(filtered);
+          // Update active filter button
+          document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === statusFilter);
+          });
+        } else {
+          displayOffers(allOffers);
+        }
+      } catch (error) {
+        showToast('Failed to load data', 'error');
+      }
+    }
+
+    // Display offers in table
+    function displayOffers(offers) {
+      const tbody = document.getElementById('offersTableBody');
+      
+      if (offers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No offers found</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = offers.map(offer => {
+        const client = allUsers.find(u => u.id === offer.client_id);
+        const clientEmail = client ? client.email : 'Unknown';
+        
+        return `
+          <tr data-status="${offer.status}">
+            <td>
+              <p class="text-xs font-weight-bold mb-0 ps-3">#${offer.id}</p>
+            </td>
+            <td>
+              <div class="d-flex px-2 py-1">
+                <div class="d-flex flex-column justify-content-center">
+                  <h6 class="mb-0 text-sm">${clientEmail}</h6>
+                  <p class="text-xs text-secondary mb-0">${offer.company_representative}</p>
+                </div>
+              </div>
+            </td>
+            <td>
+              <p class="text-xs font-weight-bold mb-0">${offer.description.substring(0, 40)}${offer.description.length > 40 ? '...' : ''}</p>
+            </td>
+            <td>
+              <p class="text-xs font-weight-bold mb-0">${offer.pickup_date}</p>
+              <p class="text-xs text-secondary mb-0">${offer.pickup_time}</p>
+            </td>
+            <td class="align-middle text-center text-sm">
+              <span class="badge badge-sm bg-gradient-${getStatusBadge(offer.status)}">${getStatusDisplay(offer.status)}</span>
+            </td>
+            <td class="align-middle text-center">
+              ${offer.driver_first_name ? `
+                <p class="text-xs font-weight-bold mb-0">${offer.driver_first_name}</p>
+                <p class="text-xs text-secondary mb-0">${offer.vehicle_make} ${offer.vehicle_model}</p>
+              ` : '<span class="badge badge-sm bg-gradient-secondary">No driver</span>'}
+            </td>
+            <td class="align-middle">
+              <button class="btn btn-link text-secondary mb-0 px-3" onclick="viewOffer(${offer.id})">
+                <i class="fas fa-eye text-xs"></i>
+              </button>
+              <button class="btn btn-link text-primary mb-0 px-3" onclick="openAssignDriver(${offer.id})">
+                <i class="fas fa-user-plus text-xs"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // View offer details
+    async function viewOffer(offerId) {
+      currentOfferId = offerId;
+      const offer = allOffers.find(o => o.id === offerId);
+      const client = allUsers.find(u => u.id === offer.client_id);
+      
+      const content = `
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Offer ID:</strong> #${offer.id}</p>
+            <p><strong>Client:</strong> ${client ? client.email : 'Unknown'}</p>
+            <p><strong>Description:</strong> <span class="offer-description">${offer.description}</span></p>
+            <p><strong>Representative:</strong> ${offer.company_representative}</p>
+            <p><strong>Emergency Phone:</strong> ${offer.emergency_phone}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Pickup Date:</strong> ${offer.pickup_date}</p>
+            <p><strong>Pickup Time:</strong> ${offer.pickup_time}</p>
+            <p><strong>Status:</strong> <span class="badge bg-gradient-${getStatusBadge(offer.status)}">${getStatusDisplay(offer.status)}</span></p>
+            <p><strong>Created:</strong> ${formatDate(offer.created_at)}</p>
+            <p><strong>Updated:</strong> ${formatDate(offer.updated_at)}</p>
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col-12">
+            <p><strong>Pickup Address:</strong><br>${offer.pickup_address}</p>
+            <p><strong>Dropoff Address:</strong><br>${offer.dropoff_address}</p>
+            ${offer.additional_service ? `<p><strong>Additional Services:</strong><br>${offer.additional_service}</p>` : ''}
+          </div>
+        </div>
+        ${offer.driver_first_name ? `
+          <hr>
+          <div class="row">
+            <div class="col-12">
+              <h6>Driver Assignment</h6>
+              <p><strong>Driver Name:</strong> ${offer.driver_first_name}</p>
+              <p><strong>Driver Phone:</strong> ${offer.driver_phone}</p>
+              <p><strong>Vehicle:</strong> ${offer.vehicle_color} ${offer.vehicle_make} ${offer.vehicle_model}</p>
+              <p><strong>Plate Number:</strong> ${offer.vehicle_plate}</p>
+            </div>
+          </div>
+        ` : '<hr><p class="text-center text-muted">No driver assigned yet</p>'}
+      `;
+      
+      document.getElementById('offerDetailsContent').innerHTML = content;
+      new bootstrap.Modal(document.getElementById('viewOfferModal')).show();
+    }
+
+    // Open assign driver modal
+    function openAssignDriver(offerId) {
+      const offer = allOffers.find(o => o.id === offerId);
+      
+      document.getElementById('assignOfferId').value = offerId;
+      
+      // Pre-fill if driver already assigned
+      if (offer.driver_first_name) {
+        document.getElementById('driverFirstName').value = offer.driver_first_name;
+        document.getElementById('driverPhone').value = offer.driver_phone;
+        document.getElementById('vehicleMake').value = offer.vehicle_make;
+        document.getElementById('vehicleModel').value = offer.vehicle_model;
+        document.getElementById('vehicleColor').value = offer.vehicle_color;
+        document.getElementById('vehiclePlate').value = offer.vehicle_plate;
+        document.getElementById('offerStatus').value = offer.status;
+      } else {
+        document.getElementById('assignDriverForm').reset();
+        document.getElementById('offerStatus').value = 'matched';
+      }
+      
+      // Close view modal if open
+      const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewOfferModal'));
+      if (viewModal) viewModal.hide();
+      
+      new bootstrap.Modal(document.getElementById('assignDriverModal')).show();
+    }
+
+    // Assign driver button from view modal
+    document.getElementById('assignDriverBtn').addEventListener('click', () => {
+      if (currentOfferId) {
+        openAssignDriver(currentOfferId);
+      }
+    });
+
+    // Save driver assignment
+    document.getElementById('saveDriverBtn').addEventListener('click', async () => {
+      const offerId = document.getElementById('assignOfferId').value;
+      
+      const driverData = {
+        driver_first_name: document.getElementById('driverFirstName').value,
+        driver_phone: document.getElementById('driverPhone').value,
+        vehicle_make: document.getElementById('vehicleMake').value,
+        vehicle_model: document.getElementById('vehicleModel').value,
+        vehicle_color: document.getElementById('vehicleColor').value,
+        vehicle_plate: document.getElementById('vehiclePlate').value,
+        status: document.getElementById('offerStatus').value
+      };
+
+      // Validation
+      if (!driverData.driver_first_name || !driverData.driver_phone || 
+          !driverData.vehicle_make || !driverData.vehicle_model || 
+          !driverData.vehicle_color || !driverData.vehicle_plate) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+      }
+
+      try {
+        await api.assignDriver(offerId, driverData);
+        showToast('Driver assigned successfully', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('assignDriverModal')).hide();
+        loadData();
+      } catch (error) {
+        showToast(error.message || 'Failed to assign driver', 'error');
+      }
+    });
+
+    // Filter offers
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+
+        const filter = e.target.dataset.filter;
+        const filtered = filter === 'all' ? allOffers : allOffers.filter(o => o.status === filter);
+        displayOffers(filtered);
+      });
+    });
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', debounce((e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const filtered = allOffers.filter(offer => {
+        const client = allUsers.find(u => u.id === offer.client_id);
+        const clientEmail = client ? client.email.toLowerCase() : '';
+        
+        return offer.description.toLowerCase().includes(searchTerm) ||
+               offer.pickup_address.toLowerCase().includes(searchTerm) ||
+               offer.dropoff_address.toLowerCase().includes(searchTerm) ||
+               offer.company_representative.toLowerCase().includes(searchTerm) ||
+               clientEmail.includes(searchTerm);
+      });
+      displayOffers(filtered);
+    }, 300));
+
+    // Load data on page load
+    loadData();
+  </script>
+</body>
+
+</html>

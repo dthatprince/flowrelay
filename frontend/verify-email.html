@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Email Verification - Transport Delivery</title>
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link id="pagestyle" href="./assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+  
+  <style>
+    .toast-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .toast-notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    .toast-success {
+      background: linear-gradient(310deg, #17ad37 0%, #98ec2d 100%);
+    }
+    
+    .toast-error {
+      background: linear-gradient(310deg, #ea0606 0%, #ff667c 100%);
+    }
+    
+    .toast-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .verification-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    .success-icon {
+      color: #17ad37;
+    }
+
+    .error-icon {
+      color: #ea0606;
+    }
+
+    .pending-icon {
+      color: #fb8c00;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="main-content mt-0">
+    <section>
+      <div class="page-header min-vh-100">
+        <div class="container">
+          <div class="row">
+            <div class="col-xl-6 col-lg-7 col-md-9 mx-auto">
+              <div class="card card-plain">
+                <div class="card-body text-center">
+                  <!-- Pending Verification State -->
+                  <div id="pendingState">
+                    <i class="fas fa-envelope-open-text verification-icon pending-icon"></i>
+                    <h4 class="font-weight-bolder">Check Your Email</h4>
+                    <p class="mb-4">
+                      We've sent a verification link to your email address. 
+                      Please click the link to verify your account.
+                    </p>
+                    <div class="alert alert-info text-start" role="alert">
+                      <strong>Didn't receive the email?</strong>
+                      <ul class="mb-0 mt-2">
+                        <li>Check your spam/junk folder</li>
+                        <li>Make sure you entered the correct email</li>
+                        <li>Wait a few minutes and check again</li>
+                      </ul>
+                    </div>
+                    <a href="index.html" class="btn bg-gradient-primary btn-lg mt-3">
+                      Go to Login
+                    </a>
+                  </div>
+
+                  <!-- Success State -->
+                  <div id="successState" style="display: none;">
+                    <i class="fas fa-check-circle verification-icon success-icon"></i>
+                    <h4 class="font-weight-bolder text-success">Email Verified!</h4>
+                    <p class="mb-4">
+                      Your email has been successfully verified. 
+                      You can now log in to your account.
+                    </p>
+                    <a href="index.html" class="btn bg-gradient-success btn-lg mt-3">
+                      <i class="fas fa-sign-in-alt me-2"></i>Login Now
+                    </a>
+                  </div>
+
+                  <!-- Error State -->
+                  <div id="errorState" style="display: none;">
+                    <i class="fas fa-times-circle verification-icon error-icon"></i>
+                    <h4 class="font-weight-bolder text-danger">Verification Failed</h4>
+                    <p class="mb-4" id="errorMessage">
+                      The verification link is invalid or has expired.
+                    </p>
+                    <a href="signup.html" class="btn bg-gradient-primary btn-lg mt-3">
+                      Sign Up Again
+                    </a>
+                    <a href="index.html" class="btn btn-outline-secondary btn-lg mt-3 ms-2">
+                      Back to Login
+                    </a>
+                  </div>
+
+                  <!-- Loading State -->
+                  <div id="loadingState" style="display: none;">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4 class="font-weight-bolder">Verifying...</h4>
+                    <p>Please wait while we verify your email.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./assets/js/core/popper.min.js"></script>
+  <script src="./assets/js/core/bootstrap.min.js"></script>
+  <script src="./assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="./assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="./assets/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
+  
+  <script src="./assets/js/api.js"></script>
+  <script src="./assets/js/auth.js"></script>
+  <script src="./assets/js/utils.js"></script>
+  
+  <script>
+    // Check if token is in URL (direct verification link)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    function showState(state) {
+      // Hide all states
+      document.getElementById('pendingState').style.display = 'none';
+      document.getElementById('successState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'none';
+      document.getElementById('loadingState').style.display = 'none';
+
+      // Show requested state
+      document.getElementById(state + 'State').style.display = 'block';
+    }
+
+    // If token is present, verify immediately
+    if (token) {
+      verifyEmail(token);
+    } else {
+      // Show pending state (user just signed up)
+      showState('pending');
+    }
+
+    async function verifyEmail(verificationToken) {
+      showState('loading');
+
+      try {
+        const response = await api.verifyEmail(verificationToken);
+        
+        // Show success state
+        showState('success');
+        showToast('Email verified successfully!', 'success');
+
+      } catch (error) {
+        // Show error state
+        showState('error');
+        
+        // Update error message
+        const errorMsg = document.getElementById('errorMessage');
+        if (error.message) {
+          errorMsg.textContent = error.message;
+        }
+        
+        showToast('Email verification failed', 'error');
+      }
+    }
+  </script>
+</body>
+
+</html>

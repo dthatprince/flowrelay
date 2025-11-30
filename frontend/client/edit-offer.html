@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Edit Offer - Transport Delivery</title>
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link id="pagestyle" href="../assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+  
+  <style>
+    .toast-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+    }
+    .toast-notification.show { opacity: 1; transform: translateX(0); }
+    .toast-success { background: linear-gradient(310deg, #17ad37 0%, #98ec2d 100%); }
+    .toast-error { background: linear-gradient(310deg, #ea0606 0%, #ff667c 100%); }
+    .toast-content { display: flex; align-items: center; gap: 10px; }
+  </style>
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  <!-- Sidebar -->
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand m-0" href="dashboard.html">
+        <span class="ms-1 font-weight-bold">Transport Delivery</span>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0">
+    <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-home text-primary"></i>
+            </div>
+            <span class="nav-link-text ms-1">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="offers.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-list text-warning"></i>
+            </div>
+            <span class="nav-link-text ms-1">My Offers</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="create-offer.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-plus text-success"></i>
+            </div>
+            <span class="nav-link-text ms-1">Create Offer</span>
+          </a>
+        </li>
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account</h6>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link logout-btn" href="#">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-sign-out-alt text-danger"></i>
+            </div>
+            <span class="nav-link-text ms-1">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <!-- Navbar -->
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" navbar-scroll="true">
+      <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="dashboard.html">Dashboard</a></li>
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="offers.html">Offers</a></li>
+            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Edit Offer</li>
+          </ol>
+          <h6 class="font-weight-bolder mb-0">Edit Transport Offer</h6>
+        </nav>
+        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+          <div class="ms-md-auto pe-md-3 d-flex align-items-center"></div>
+          <ul class="navbar-nav justify-content-end">
+            <li class="nav-item d-flex align-items-center">
+              <a href="#" class="nav-link text-body font-weight-bold px-0">
+                <i class="fa fa-user me-sm-1"></i>
+                <span class="d-sm-inline d-none user-name">User</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+      <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+              <h6>Edit Offer Details</h6>
+              <span class="badge bg-gradient-warning" id="statusBadge">Pending</span>
+            </div>
+            <div class="card-body">
+              <div id="loadingMessage" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading offer details...</p>
+              </div>
+
+              <form id="editOfferForm" style="display: none;">
+                <input type="hidden" id="offerId">
+                
+                <div class="row">
+                  <!-- Company Representative -->
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="companyRepresentative" class="form-control-label">Company Representative</label>
+                      <input type="text" class="form-control" id="companyRepresentative" placeholder="John Doe" required>
+                    </div>
+                  </div>
+                  
+                  <!-- Emergency Phone -->
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="emergencyPhone" class="form-control-label">Emergency Phone Number</label>
+                      <input type="tel" class="form-control" id="emergencyPhone" placeholder="+1 234 567 8900" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <!-- Description -->
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label for="description" class="form-control-label">Offer Description</label>
+                      <textarea class="form-control" id="description" rows="3" placeholder="e.g., Transport of 2 children from Dallas to Fort-worth" required></textarea>
+                      <small class="text-muted">Describe what needs to be transported</small>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <!-- Pickup Date -->
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="pickupDate" class="form-control-label">Pickup Date</label>
+                      <input type="date" class="form-control" id="pickupDate" required>
+                    </div>
+                  </div>
+                  
+                  <!-- Pickup Time -->
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="pickupTime" class="form-control-label">Pickup Time</label>
+                      <input type="time" class="form-control" id="pickupTime" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <!-- Pickup Address -->
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label for="pickupAddress" class="form-control-label">Pickup Address</label>
+                      <input type="text" class="form-control" id="pickupAddress" placeholder="123 Main St, Dallas, TX 75201" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <!-- Dropoff Address -->
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label for="dropoffAddress" class="form-control-label">Dropoff Address</label>
+                      <input type="text" class="form-control" id="dropoffAddress" placeholder="456 Oak Ave, Fort Worth, TX 76102" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <!-- Additional Services -->
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label for="additionalService" class="form-control-label">Additional Services (Optional)</label>
+                      <textarea class="form-control" id="additionalService" rows="2" placeholder="e.g., Wait to return client, Handle with care, etc."></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="alert alert-warning mt-3" role="alert">
+                  <strong>Note:</strong> You can only edit offers that are in "Pending" status. Once an offer is matched or in progress, changes are not allowed.
+                </div>
+
+                <div class="row mt-4">
+                  <div class="col-12">
+                    <button type="submit" class="btn bg-gradient-primary" id="submitBtn">Update Offer</button>
+                    <a href="offers.html" class="btn btn-outline-secondary">Cancel</a>
+                  </div>
+                </div>
+              </form>
+
+              <div id="errorMessage" style="display: none;" class="alert alert-danger"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../assets/js/core/popper.min.js"></script>
+  <script src="../assets/js/core/bootstrap.min.js"></script>
+  <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="../assets/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
+  
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  
+  <script>
+    // Check authentication
+    if (!auth.requireClient()) {
+      window.location.href = '../index.html';
+    }
+
+    // Get offer ID from URL
+    const offerId = getUrlParameter('id');
+    
+    if (!offerId) {
+      window.location.href = 'offers.html';
+    }
+
+    // Load offer data
+    async function loadOffer() {
+      try {
+        const offer = await api.getOffer(offerId);
+        
+        // Check if offer can be edited (only pending offers)
+        if (offer.status !== 'pending') {
+          document.getElementById('loadingMessage').style.display = 'none';
+          document.getElementById('errorMessage').style.display = 'block';
+          document.getElementById('errorMessage').textContent = 
+            `This offer cannot be edited because it is "${getStatusDisplay(offer.status)}". Only pending offers can be modified.`;
+          
+          setTimeout(() => {
+            window.location.href = 'offers.html';
+          }, 3000);
+          return;
+        }
+        
+        // Populate form with offer data
+        document.getElementById('offerId').value = offer.id;
+        document.getElementById('companyRepresentative').value = offer.company_representative;
+        document.getElementById('emergencyPhone').value = offer.emergency_phone;
+        document.getElementById('description').value = offer.description;
+        document.getElementById('pickupDate').value = offer.pickup_date;
+        document.getElementById('pickupTime').value = offer.pickup_time;
+        document.getElementById('pickupAddress').value = offer.pickup_address;
+        document.getElementById('dropoffAddress').value = offer.dropoff_address;
+        document.getElementById('additionalService').value = offer.additional_service || '';
+        
+        // Show form and hide loading
+        document.getElementById('loadingMessage').style.display = 'none';
+        document.getElementById('editOfferForm').style.display = 'block';
+        
+      } catch (error) {
+        document.getElementById('loadingMessage').style.display = 'none';
+        document.getElementById('errorMessage').style.display = 'block';
+        document.getElementById('errorMessage').textContent = 
+          error.message || 'Failed to load offer. You may not have permission to edit this offer.';
+        
+        setTimeout(() => {
+          window.location.href = 'offers.html';
+        }, 3000);
+      }
+    }
+
+    // Handle form submission
+    document.getElementById('editOfferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const offerId = document.getElementById('offerId').value;
+      
+      // Get form values
+      const offerData = {
+        company_representative: document.getElementById('companyRepresentative').value,
+        emergency_phone: document.getElementById('emergencyPhone').value,
+        description: document.getElementById('description').value,
+        pickup_date: document.getElementById('pickupDate').value,
+        pickup_time: document.getElementById('pickupTime').value,
+        pickup_address: document.getElementById('pickupAddress').value,
+        dropoff_address: document.getElementById('dropoffAddress').value,
+        additional_service: document.getElementById('additionalService').value || null
+      };
+      
+      // Validate phone number
+      if (!validatePhone(offerData.emergency_phone)) {
+        showToast('Please enter a valid phone number', 'error');
+        return;
+      }
+      
+      // Validate required fields
+      if (!offerData.company_representative || !offerData.description || 
+          !offerData.pickup_date || !offerData.pickup_time || 
+          !offerData.pickup_address || !offerData.dropoff_address) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+      }
+      
+      showLoading('submitBtn');
+      
+      try {
+        await api.updateOffer(offerId, offerData);
+        showToast('Offer updated successfully!', 'success');
+        
+        // Redirect to offers page after 1 second
+        setTimeout(() => {
+          window.location.href = 'offers.html';
+        }, 1000);
+        
+      } catch (error) {
+        hideLoading('submitBtn', 'Update Offer');
+        showToast(error.message || 'Failed to update offer. Please try again.', 'error');
+      }
+    });
+
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('pickupDate').setAttribute('min', today);
+
+    // Load offer on page load
+    loadOffer();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Sign Up - Transport Delivery</title>
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link id="pagestyle" href="./assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+  
+  <style>
+    .toast-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .toast-notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    .toast-success {
+      background: linear-gradient(310deg, #17ad37 0%, #98ec2d 100%);
+    }
+    
+    .toast-error {
+      background: linear-gradient(310deg, #ea0606 0%, #ff667c 100%);
+    }
+    
+    .toast-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .client-fields {
+      display: none;
+    }
+    
+    .client-fields.show {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="main-content mt-0">
+    <section class="min-vh-100 mb-8">
+      <div class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg"
+        style="background-image: url('https://images.unsplash.com/photo-1486825586573-7131f7991bdd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');">
+        <span class="mask bg-gradient-dark opacity-6"></span>
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-5 text-center mx-auto">
+              <h1 class="text-white mb-2 mt-5">Welcome!</h1>
+              <p class="text-lead text-white">Create your account to start managing transport deliveries.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="container">
+        <div class="row mt-lg-n10 mt-md-n11 mt-n10">
+          <div class="col-xl-6 col-lg-7 col-md-9 mx-auto">
+            <div class="card z-index-0">
+              <div class="card-header text-center pt-4">
+                <h5>Register with</h5>
+              </div>
+              <div class="card-body">
+                <form role="form" id="signupForm">
+                  <!-- Email and Password -->
+                  <div class="mb-3">
+                    <input type="email" class="form-control" placeholder="Email" id="email" required>
+                  </div>
+                  <div class="mb-3">
+                    <input type="password" class="form-control" placeholder="Password" id="password" required>
+                  </div>
+                  <div class="mb-3">
+                    <input type="password" class="form-control" placeholder="Confirm Password" id="confirmPassword" required>
+                  </div>
+                  
+                  <!-- Role Selection -->
+                  <div class="mb-3">
+                    <label class="form-label">Account Type</label>
+                    <select class="form-select" id="role" required>
+                      <option value="">Select account type</option>
+                      <option value="client">Client</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  
+                  <!-- Client-specific fields -->
+                  <div id="clientFields" class="client-fields">
+                    <div class="mb-3">
+                      <input type="text" class="form-control" placeholder="Company Name" id="companyName">
+                    </div>
+                    <div class="mb-3">
+                      <input type="text" class="form-control" placeholder="Address" id="address">
+                    </div>
+                    <div class="mb-3">
+                      <input type="tel" class="form-control" placeholder="Phone Number" id="phoneNumber">
+                    </div>
+                    <div class="mb-3">
+                      <input type="text" class="form-control" placeholder="Company Representative" id="companyRepresentative">
+                    </div>
+                    <div class="mb-3">
+                      <input type="tel" class="form-control" placeholder="Emergency Phone Number" id="emergencyPhone">
+                    </div>
+                  </div>
+                  
+                  <div class="form-check form-check-info text-start">
+                    <input class="form-check-input" type="checkbox" id="terms" required>
+                    <label class="form-check-label" for="terms">
+                      I agree to the <a href="#" class="text-dark font-weight-bolder">Terms and Conditions</a>
+                    </label>
+                  </div>
+                  
+                  <div class="text-center">
+                    <button type="submit" class="btn bg-gradient-dark w-100 my-4 mb-2" id="signupBtn">Sign up</button>
+                  </div>
+                  <p class="text-sm mt-3 mb-0">Already have an account? <a href="index.html" class="text-dark font-weight-bolder">Sign in</a></p>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./assets/js/core/popper.min.js"></script>
+  <script src="./assets/js/core/bootstrap.min.js"></script>
+  <script src="./assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="./assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="./assets/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
+  
+  <script src="./assets/js/api.js"></script>
+  <script src="./assets/js/auth.js"></script>
+  <script src="./assets/js/utils.js"></script>
+  
+  <script>
+    // Show/hide client fields based on role
+    document.getElementById('role').addEventListener('change', (e) => {
+      const clientFields = document.getElementById('clientFields');
+      if (e.target.value === 'client') {
+        clientFields.classList.add('show');
+      } else {
+        clientFields.classList.remove('show');
+      }
+    });
+
+    // Handle signup form submission
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const role = document.getElementById('role').value;
+      const terms = document.getElementById('terms').checked;
+      
+      // Validation
+      if (!email || !password || !role) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        showToast('Passwords do not match', 'error');
+        return;
+      }
+      
+      if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        return;
+      }
+      
+      if (!terms) {
+        showToast('Please accept the terms and conditions', 'error');
+        return;
+      }
+      
+      // Prepare signup data
+      const signupData = {
+        email,
+        password,
+        role
+      };
+      
+      // Add client-specific fields if role is client
+      if (role === 'client') {
+        signupData.company_name = document.getElementById('companyName').value;
+        signupData.address = document.getElementById('address').value;
+        signupData.phone_number = document.getElementById('phoneNumber').value;
+        signupData.company_representative = document.getElementById('companyRepresentative').value;
+        signupData.emergency_phone = document.getElementById('emergencyPhone').value;
+      }
+      
+      showLoading('signupBtn');
+      
+      try {
+        const response = await api.signup(signupData);
+        showToast('Registration successful! Please check your email to verify your account.', 'success');
+        
+        // Redirect to verification page after 2 seconds
+        setTimeout(() => {
+          window.location.href = 'verify-email.html';
+        }, 2000);
+        
+      } catch (error) {
+        hideLoading('signupBtn', 'Sign up');
+        showToast(error.message || 'Registration failed. Please try again.', 'error');
+      }
+    });
+  </script>
+</body>
+
+</html>
