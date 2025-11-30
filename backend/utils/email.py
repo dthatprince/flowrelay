@@ -5,7 +5,7 @@ from config import PROMAILER_API_KEY, FROM_EMAIL, BASE_URL
 
 logger = logging.getLogger(__name__)
 
-PROMAILER_API_URL = "https://api.mailbridge.dev/v1/messages/send"
+PROMAILER_API_URL = "https://api.promailer.dev/v1/messages/send"
 
 async def send_verification_email(to_email: str, token: str):
     """
