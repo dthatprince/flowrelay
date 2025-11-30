@@ -2,8 +2,8 @@
 
 ### 1. Clone the Repository
 ```sh
-git clone https://github.com/brooksandquays/logistics.git
-cd logistics/frontend
+git clone https://github.com/dthatprince/flowrelay.git
+cd flowrelay/backend
 ```
 
 ### 2. Run the Application
