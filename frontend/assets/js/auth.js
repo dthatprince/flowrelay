@@ -70,7 +70,7 @@ class AuthManager {
     // Logout handler
     logout() {
         this.removeToken();
-        window.location.href = './index.html';
+        window.location.href = '../index.html';
     }
 
     // Redirect based on role
