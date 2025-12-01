@@ -75,6 +75,7 @@ Clients can create and manage their own transport/delivery offers.
 - Sessions protected through token expiration
 
 
+
 ## Installation & Setup
 
 ### 1. Clone the Repository
@@ -91,28 +92,6 @@ https://github.com/dthatprince/flowrelay/tree/main/frontend/ReadMe.md
 https://github.com/dthatprince/flowrelay/tree/main/backend/ReadMe.md
 
 ```
-
-
-## Features
-### Backend (FastAPI)
-- Fast, async API endpoints built with FastAPI
-- SQLite database with SQLAlchemy models
-- JWT authentication (OAuth2 Password Bearer)
-- User registration, login, and protected routes
-- Logistic workflows (packages, deliveries, tracking)
-- Modular code structure with routers and services
-
-Frontend
-
-Fully customized UI using Soft UI Dashboard (Creative Tim)
-
-Clean HTML, CSS, and vanilla JavaScript structure
-
-API integration with token-based authentication
-
-Dynamic dashboard components
-
-Mobile-responsive design
 
 
 ## Tech Stack
