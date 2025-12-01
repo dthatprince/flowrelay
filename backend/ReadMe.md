@@ -20,7 +20,26 @@ pip install -r requirements.txt
 ```
 
 
-### 4. Run the Application
+### 4. Required Environment Variables
+```sh
+# Security & JWT
+SECRET_KEY=
+ALGORITHM=
+ACCESS_TOKEN_EXPIRE_MINUTES=
+
+# Database Configuration
+DATABASE_URL=
+
+# Promailer Email Service
+PROMAILER_API_KEY=
+FROM_EMAIL=
+BASE_URL=
+
+
+```
+
+
+### 5. Run the Application
 From the root directory (project):
 ```sh
 python main.py
