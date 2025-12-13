@@ -5,7 +5,7 @@ from datetime import datetime
 
 from database import get_db
 from models import User, Driver, Offer, OfferStatus, UserRole
-from schemas.driver import (
+from schemas import (
     DriverCreate, DriverUpdate, DriverResponse, 
     OfferAcceptance, OfferStatusUpdate
 )

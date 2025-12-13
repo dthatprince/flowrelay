@@ -1,1 +1,1 @@
-from .models import User, Offer, UserRole, OfferStatus
+from .models import User, Offer, UserRole, OfferStatus, Driver
