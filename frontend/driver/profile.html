@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Driver Profile - Flow Relay</title>
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link id="pagestyle" href="../assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+  <link href="../assets/css/custom.css" rel="stylesheet" />
+
+  <style>
+    body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .toast-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .toast-notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    .toast-success {
+      background: linear-gradient(310deg, #17ad37 0%, #98ec2d 100%);
+    }
+    
+    .toast-error {
+      background: linear-gradient(310deg, #ea0606 0%, #ff667c 100%);
+    }
+    
+    .toast-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  <!-- Sidebar -->
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand m-0" href="dashboard.html">
+        <span class="ms-1 font-weight-bold">Driver Portal</span>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0">
+    <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-home text-primary"></i>
+            </div>
+            <span class="nav-link-text ms-1">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="profile.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-user text-info"></i>
+            </div>
+            <span class="nav-link-text ms-1">My Profile</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="available-offers.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-search text-warning"></i>
+            </div>
+            <span class="nav-link-text ms-1">Available Offers</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="my-deliveries.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-truck text-success"></i>
+            </div>
+            <span class="nav-link-text ms-1">My Deliveries</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="history.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-history text-secondary"></i>
+            </div>
+            <span class="nav-link-text ms-1">History</span>
+          </a>
+        </li>
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account</h6>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link logout-btn" href="#">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-sign-out-alt text-danger"></i>
+            </div>
+            <span class="nav-link-text ms-1">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <!-- Navbar -->
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur">
+      <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="dashboard.html">Dashboard</a></li>
+            <li class="breadcrumb-item text-sm text-dark active">Profile</li>
+          </ol>
+          <h6 class="font-weight-bolder mb-0">My Profile</h6>
+        </nav>
+        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+          <div class="ms-md-auto pe-md-3 d-flex align-items-center"></div>
+          <ul class="navbar-nav justify-content-end">
+            <li class="nav-item d-flex align-items-center">
+              <a href="#" class="nav-link text-body font-weight-bold px-0">
+                <i class="fa fa-user me-sm-1"></i>
+                <span class="d-sm-inline d-none user-name">Driver</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+      <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6 id="formTitle">Create Driver Profile</h6>
+            </div>
+            <div class="card-body">
+              <div id="loadingMessage" class="text-center py-4" style="display: none;">
+                <div class="spinner-border text-primary"></div>
+                <p class="mt-2">Loading profile...</p>
+              </div>
+
+              <form id="profileForm">
+                <h6 class="text-uppercase text-xs font-weight-bolder">Personal Information</h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>First Name *</label>
+                      <input type="text" class="form-control" id="firstName" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Last Name *</label>
+                      <input type="text" class="form-control" id="lastName" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Phone Number *</label>
+                      <input type="tel" class="form-control" id="phoneNumber" placeholder="+1 234 567 8900" required>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="horizontal dark">
+                <h6 class="text-uppercase text-xs font-weight-bolder">License Information</h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>License Number *</label>
+                      <input type="text" class="form-control" id="licenseNumber" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>License Expiry Date *</label>
+                      <input type="date" class="form-control" id="licenseExpiry" required>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="horizontal dark">
+                <h6 class="text-uppercase text-xs font-weight-bolder">Vehicle Information</h6>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label>Vehicle Make *</label>
+                      <input type="text" class="form-control" id="vehicleMake" placeholder="e.g., Toyota" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label>Vehicle Model *</label>
+                      <input type="text" class="form-control" id="vehicleModel" placeholder="e.g., Camry" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label>Vehicle Year *</label>
+                      <input type="text" class="form-control" id="vehicleYear" placeholder="e.g., 2022" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Vehicle Color *</label>
+                      <input type="text" class="form-control" id="vehicleColor" placeholder="e.g., Black" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>License Plate *</label>
+                      <input type="text" class="form-control" id="vehiclePlate" placeholder="e.g., ABC-1234" required>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="horizontal dark">
+                <h6 class="text-uppercase text-xs font-weight-bolder">Insurance Information</h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Insurance Number *</label>
+                      <input type="text" class="form-control" id="insuranceNumber" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Insurance Expiry Date *</label>
+                      <input type="date" class="form-control" id="insuranceExpiry" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row mt-4">
+                  <div class="col-12">
+                    <button type="submit" class="btn bg-gradient-primary" id="submitBtn">Save Profile</button>
+                    <a href="dashboard.html" class="btn btn-outline-secondary">Cancel</a>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../assets/js/core/popper.min.js"></script>
+  <script src="../assets/js/core/bootstrap.min.js"></script>
+  <script src="../assets/js/soft-ui-dashboard.min.js"></script>
+  
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  
+  <script>
+    if (!auth.isAuthenticated() || auth.getUser().role !== 'driver') {
+      window.location.href = '../index.html';
+    }
+
+    let isEditMode = false;
+
+    // Try to load existing profile
+    async function loadProfile() {
+      document.getElementById('loadingMessage').style.display = 'block';
+      document.getElementById('profileForm').style.display = 'none';
+
+      try {
+        const profile = await api.getDriverProfile();
+        
+        // Profile exists, fill form
+        isEditMode = true;
+        document.getElementById('formTitle').textContent = 'Update Driver Profile';
+        document.getElementById('submitBtn').textContent = 'Update Profile';
+        
+        document.getElementById('firstName').value = profile.first_name;
+        document.getElementById('lastName').value = profile.last_name;
+        document.getElementById('phoneNumber').value = profile.phone_number;
+        document.getElementById('licenseNumber').value = profile.license_number;
+        document.getElementById('licenseExpiry').value = profile.license_expiry;
+        document.getElementById('vehicleMake').value = profile.vehicle_make;
+        document.getElementById('vehicleModel').value = profile.vehicle_model;
+        document.getElementById('vehicleYear').value = profile.vehicle_year;
+        document.getElementById('vehicleColor').value = profile.vehicle_color;
+        document.getElementById('vehiclePlate').value = profile.vehicle_plate;
+        document.getElementById('insuranceNumber').value = profile.insurance_number;
+        document.getElementById('insuranceExpiry').value = profile.insurance_expiry;
+
+      } catch (error) {
+        // Profile doesn't exist, show create form
+        isEditMode = false;
+      } finally {
+        document.getElementById('loadingMessage').style.display = 'none';
+        document.getElementById('profileForm').style.display = 'block';
+      }
+    }
+
+    // Handle form submission
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const profileData = {
+        first_name: document.getElementById('firstName').value,
+        last_name: document.getElementById('lastName').value,
+        phone_number: document.getElementById('phoneNumber').value,
+        license_number: document.getElementById('licenseNumber').value,
+        license_expiry: document.getElementById('licenseExpiry').value,
+        vehicle_make: document.getElementById('vehicleMake').value,
+        vehicle_model: document.getElementById('vehicleModel').value,
+        vehicle_year: document.getElementById('vehicleYear').value,
+        vehicle_color: document.getElementById('vehicleColor').value,
+        vehicle_plate: document.getElementById('vehiclePlate').value,
+        insurance_number: document.getElementById('insuranceNumber').value,
+        insurance_expiry: document.getElementById('insuranceExpiry').value
+      };
+
+      showLoading('submitBtn');
+
+      try {
+        if (isEditMode) {
+          await api.updateDriverProfile(profileData);
+          showToast('Profile updated successfully!', 'success');
+        } else {
+          await api.createDriverProfile(profileData);
+          showToast('Profile created successfully!', 'success');
+        }
+
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1500);
+
+      } catch (error) {
+        hideLoading('submitBtn', isEditMode ? 'Update Profile' : 'Save Profile');
+        showToast(error.message || 'Failed to save profile', 'error');
+      }
+    });
+
+    // Set minimum dates
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('licenseExpiry').setAttribute('min', today);
+    document.getElementById('insuranceExpiry').setAttribute('min', today);
+
+    loadProfile();
+  </script>
+</body>
+
+</html>

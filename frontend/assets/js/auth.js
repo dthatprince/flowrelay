@@ -49,6 +49,12 @@ class AuthManager {
         return user && user.role === 'client';
     }
 
+    // Check if user is driver
+    isDriver() {
+        const user = this.getUser();
+        return user && user.role === 'driver';
+    }
+
     // Login handler
     async login(email, password) {
         try {
@@ -70,7 +76,7 @@ class AuthManager {
     // Logout handler
     logout() {
         this.removeToken();
-        window.location.href = '../index.html';
+        window.location.href = '/index.html';
     }
 
     // Redirect based on role
@@ -78,14 +84,16 @@ class AuthManager {
         const user = this.getUser();
         
         if (!user) {
-            window.location.href = './index.html';
+            window.location.href = '/index.html';
             return;
         }
 
         if (user.role === 'admin') {
-            window.location.href = './admin/dashboard.html';
+            window.location.href = '/admin/dashboard.html';
         } else if (user.role === 'client') {
-            window.location.href = './client/dashboard.html';
+            window.location.href = '/client/dashboard.html';
+        } else if (user.role === 'driver') {
+            window.location.href = '/driver/dashboard.html';
         }
     }
 
@@ -121,6 +129,21 @@ class AuthManager {
         
         if (!this.isClient()) {
             showToast('Access denied. Client only.', 'error');
+            this.redirectToDashboard();
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Protect driver pages
+    requireDriver() {
+        if (!this.requireAuth()) {
+            return false;
+        }
+        
+        if (!this.isDriver()) {
+            showToast('Access denied. Driver only.', 'error');
             this.redirectToDashboard();
             return false;
         }

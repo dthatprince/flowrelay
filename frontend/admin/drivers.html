@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Manage Drivers - Flow Relay</title>
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link id="pagestyle" href="../assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+  <link href="../assets/css/custom.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+  </style>
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  <!-- Sidebar -->
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand m-0" href="dashboard.html">
+        <span class="ms-1 font-weight-bold">Admin Panel</span>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0">
+    <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-home text-primary"></i>
+            </div>
+            <span class="nav-link-text ms-1">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="users.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-users text-info"></i>
+            </div>
+            <span class="nav-link-text ms-1">Manage Users</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="drivers.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-car text-success"></i>
+            </div>
+            <span class="nav-link-text ms-1">Manage Drivers</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="offers.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-truck text-warning"></i>
+            </div>
+            <span class="nav-link-text ms-1">Manage Offers</span>
+          </a>
+        </li>
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account</h6>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link logout-btn" href="#">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-sign-out-alt text-danger"></i>
+            </div>
+            <span class="nav-link-text ms-1">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <!-- Navbar -->
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur">
+      <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="dashboard.html">Dashboard</a></li>
+            <li class="breadcrumb-item text-sm text-dark active">Drivers</li>
+          </ol>
+          <h6 class="font-weight-bolder mb-0">Manage Drivers</h6>
+        </nav>
+        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+          <div class="ms-md-auto pe-md-3 d-flex align-items-center">
+            <div class="input-group">
+              <span class="input-group-text text-body"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" placeholder="Search drivers..." id="searchInput">
+            </div>
+          </div>
+          <ul class="navbar-nav justify-content-end">
+            <li class="nav-item d-flex align-items-center">
+              <a href="#" class="nav-link text-body font-weight-bold px-0">
+                <i class="fa fa-user me-sm-1"></i>
+                <span class="d-sm-inline d-none user-name">Admin</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+      <!-- Filter Buttons -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All Drivers</button>
+            <button type="button" class="btn btn-sm btn-outline-success" data-filter="available">Available</button>
+            <button type="button" class="btn btn-sm btn-outline-warning" data-filter="busy">Busy</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-filter="offline">Offline</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drivers Table -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6>All Drivers</h6>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+              <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0">
+                  <thead>
+                    <tr>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Driver</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Vehicle</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">License</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Rating</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Deliveries</th>
+                      <th class="text-secondary opacity-7"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="driversTableBody">
+                    <tr>
+                      <td colspan="7" class="text-center py-4">Loading drivers...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- View Driver Modal -->
+  <div class="modal fade" id="viewDriverModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Driver Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="driverDetailsContent">
+          Loading...
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/core/popper.min.js"></script>
+  <script src="../assets/js/core/bootstrap.min.js"></script>
+  <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="../assets/js/soft-ui-dashboard.min.js"></script>
+  
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  
+  <script>
+    if (!auth.requireAdmin()) {
+      window.location.href = '../index.html';
+    }
+
+    let allUsers = [];
+    let allDrivers = [];
+
+    // Load drivers
+    async function loadDrivers() {
+      try {
+        allUsers = await api.getAllUsers();
+        const driverUsers = allUsers.filter(u => u.role === 'driver');
+        
+        // Get driver profiles for each driver user
+        allDrivers = [];
+        for (const user of driverUsers) {
+          try {
+            // Note: Admin would need special endpoint to get all driver profiles
+            // For now, we'll show users with driver role
+            allDrivers.push({
+              ...user,
+              isDriverUser: true
+            });
+          } catch (error) {
+            console.log('No profile for driver:', user.email);
+          }
+        }
+        
+        displayDrivers(allDrivers);
+      } catch (error) {
+        showToast('Failed to load drivers', 'error');
+      }
+    }
+
+    function displayDrivers(drivers) {
+      const tbody = document.getElementById('driversTableBody');
+      
+      if (drivers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No drivers found</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = drivers.map(driver => `
+        <tr data-status="${driver.status || 'unknown'}">
+          <td>
+            <div class="d-flex px-2 py-1">
+              <div>
+                <div class="icon icon-shape icon-sm border-radius-md bg-gradient-success d-flex align-items-center justify-content-center me-2">
+                  <i class="fas fa-car text-white"></i>
+                </div>
+              </div>
+              <div class="d-flex flex-column justify-content-center">
+                <h6 class="mb-0 text-sm">${driver.email}</h6>
+                <p class="text-xs text-secondary mb-0">ID: ${driver.id}</p>
+              </div>
+            </div>
+          </td>
+          <td>
+            ${driver.vehicle_make ? `
+              <p class="text-xs font-weight-bold mb-0">${driver.vehicle_color} ${driver.vehicle_make} ${driver.vehicle_model}</p>
+              <p class="text-xs text-secondary mb-0">Plate: ${driver.vehicle_plate}</p>
+            ` : '<p class="text-xs text-secondary">Profile incomplete</p>'}
+          </td>
+          <td>
+            ${driver.license_number ? `
+              <p class="text-xs font-weight-bold mb-0">${driver.license_number}</p>
+              <p class="text-xs text-secondary mb-0">Exp: ${driver.license_expiry}</p>
+            ` : '<p class="text-xs text-secondary">-</p>'}
+          </td>
+          <td class="align-middle text-center">
+            <span class="badge badge-sm bg-gradient-${driver.status === 'available' ? 'success' : driver.status === 'busy' ? 'warning' : 'secondary'}">
+              ${driver.status ? driver.status.toUpperCase() : 'NO PROFILE'}
+            </span>
+          </td>
+          <td class="align-middle text-center">
+            <span class="text-xs font-weight-bold">
+              <i class="fas fa-star text-warning"></i> ${driver.rating || '5.0'}
+            </span>
+          </td>
+          <td class="align-middle text-center">
+            <span class="text-xs font-weight-bold">${driver.total_deliveries || 0}</span>
+          </td>
+          <td class="align-middle">
+            <button class="btn btn-link text-secondary mb-0" onclick="viewDriver(${driver.id})">
+              <i class="fas fa-eye text-xs"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function viewDriver(userId) {
+      const driver = allDrivers.find(d => d.id === userId);
+      if (!driver) return;
+
+      const content = `
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Personal Info</h6>
+            <p><strong>Email:</strong> ${driver.email}</p>
+            <p><strong>Phone:</strong> ${driver.phone_number || '-'}</p>
+            <p><strong>Status:</strong> <span class="badge bg-gradient-${driver.status === 'available' ? 'success' : driver.status === 'busy' ? 'warning' : 'secondary'}">${driver.status || 'No profile'}</span></p>
+            <p><strong>Member Since:</strong> ${formatDate(driver.created_at)}</p>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Performance</h6>
+            <p><strong>Rating:</strong> <i class="fas fa-star text-warning"></i> ${driver.rating || '5.0'}</p>
+            <p><strong>Total Deliveries:</strong> ${driver.total_deliveries || 0}</p>
+            <p><strong>Account Status:</strong> <span class="badge bg-gradient-${driver.is_verified === 'true' ? 'success' : 'warning'}">${driver.is_verified === 'true' ? 'Verified' : 'Unverified'}</span></p>
+          </div>
+        </div>
+        ${driver.vehicle_make ? `
+          <hr>
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Vehicle Info</h6>
+              <p><strong>Make/Model:</strong> ${driver.vehicle_make} ${driver.vehicle_model} (${driver.vehicle_year})</p>
+              <p><strong>Color:</strong> ${driver.vehicle_color}</p>
+              <p><strong>Plate:</strong> ${driver.vehicle_plate}</p>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">License & Insurance</h6>
+              <p><strong>License:</strong> ${driver.license_number}</p>
+              <p><strong>License Expiry:</strong> ${driver.license_expiry}</p>
+              <p><strong>Insurance:</strong> ${driver.insurance_number}</p>
+              <p><strong>Insurance Expiry:</strong> ${driver.insurance_expiry}</p>
+            </div>
+          </div>
+        ` : '<hr><p class="text-center text-muted">Driver profile not completed yet</p>'}
+      `;
+
+      document.getElementById('driverDetailsContent').innerHTML = content;
+      new bootstrap.Modal(document.getElementById('viewDriverModal')).show();
+    }
+
+    // Filter drivers
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+
+        const filter = e.target.dataset.filter;
+        let filtered = allDrivers;
+
+        if (filter !== 'all') {
+          filtered = allDrivers.filter(d => d.status === filter);
+        }
+
+        displayDrivers(filtered);
+      });
+    });
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', debounce((e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const filtered = allDrivers.filter(driver =>
+        driver.email.toLowerCase().includes(searchTerm) ||
+        (driver.first_name && driver.first_name.toLowerCase().includes(searchTerm)) ||
+        (driver.last_name && driver.last_name.toLowerCase().includes(searchTerm)) ||
+        (driver.vehicle_plate && driver.vehicle_plate.toLowerCase().includes(searchTerm))
+      );
+      displayDrivers(filtered);
+    }, 300));
+
+    loadDrivers();
+  </script>
+</body>
+
+</html>

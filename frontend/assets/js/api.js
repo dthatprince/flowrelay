@@ -163,6 +163,84 @@ class API {
             body: JSON.stringify(offerData),
         });
     }
+
+    // DRIVER PROFILE ENDPOINTS
+    async createDriverProfile(profileData) {
+        return this.request('/driver/profile', {
+            method: 'POST',
+            body: JSON.stringify(profileData),
+        });
+    }
+
+    async getDriverProfile() {
+        return this.request('/driver/profile', {
+            method: 'GET',
+        });
+    }
+
+    async updateDriverProfile(profileData) {
+        return this.request('/driver/profile', {
+            method: 'PUT',
+            body: JSON.stringify(profileData),
+        });
+    }
+
+    async updateDriverStatus(status) {
+        return this.request(`/driver/status?status=${status}`, {
+            method: 'PUT',
+        });
+    }
+
+    // DRIVER OFFER ENDPOINTS
+    async getDriverAvailableOffers() {
+        return this.request('/driver/offers/available', {
+            method: 'GET',
+        });
+    }
+
+    async getDriverMyAssignments() {
+        return this.request('/driver/offers/my-assignments', {
+            method: 'GET',
+        });
+    }
+
+    async getDriverActiveOffers() {
+        return this.request('/driver/offers/active', {
+            method: 'GET',
+        });
+    }
+
+    async getDriverOfferDetails(offerId) {
+        return this.request(`/driver/offers/${offerId}`, {
+            method: 'GET',
+        });
+    }
+
+    async acceptOffer(offerId) {
+        return this.request(`/driver/offers/${offerId}/accept`, {
+            method: 'POST',
+        });
+    }
+
+    async updateOfferStatus(offerId, statusData) {
+        return this.request(`/driver/offers/${offerId}/status`, {
+            method: 'PUT',
+            body: JSON.stringify(statusData),
+        });
+    }
+
+    // DRIVER STATISTICS ENDPOINTS
+    async getDriverStatistics() {
+        return this.request('/driver/statistics', {
+            method: 'GET',
+        });
+    }
+
+    async getDriverHistory(limit = 50) {
+        return this.request(`/driver/history?limit=${limit}`, {
+            method: 'GET',
+        });
+    }
 }
 
 // Create global API instance

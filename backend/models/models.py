@@ -7,6 +7,7 @@ from database import Base
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
     CLIENT = "client"
+    DRIVER = "driver" 
 
 class OfferStatus(str, enum.Enum):
     PENDING = "pending"
@@ -31,13 +32,41 @@ class User(Base):
     verification_token = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    offers = relationship("Offer", back_populates="client")
+    offers = relationship("Offer", back_populates="client", foreign_keys="Offer.client_id")
+    driver_profile = relationship("Driver", back_populates="user", uselist=False)  # NEW
+
+class Driver(Base):
+    __tablename__ = "drivers"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    first_name = Column(String)
+    last_name = Column(String)
+    phone_number = Column(String)
+    license_number = Column(String, unique=True)
+    license_expiry = Column(String)
+    vehicle_make = Column(String)
+    vehicle_model = Column(String)
+    vehicle_year = Column(String)
+    vehicle_color = Column(String)
+    vehicle_plate = Column(String, unique=True)
+    insurance_number = Column(String)
+    insurance_expiry = Column(String)
+    status = Column(String, default="available")  # available, busy, offline
+    rating = Column(String, default="5.0")
+    total_deliveries = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User", back_populates="driver_profile")
+    assigned_offers = relationship("Offer", back_populates="assigned_driver")
 
 class Offer(Base):
     __tablename__ = "offers"
     
     id = Column(Integer, primary_key=True, index=True)
     client_id = Column(Integer, ForeignKey("users.id"))
+    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)  # NEW: Link to driver
     company_representative = Column(String)
     emergency_phone = Column(String)
     description = Column(String)
@@ -56,5 +85,5 @@ class Offer(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    client = relationship("User", back_populates="offers")
-    
+    client = relationship("User", back_populates="offers", foreign_keys=[client_id])
+    assigned_driver = relationship("Driver", back_populates="assigned_offers")  

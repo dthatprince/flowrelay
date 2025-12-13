@@ -10,12 +10,13 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link id="pagestyle" href="../assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
   <link href="../assets/css/custom.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+  </style>
 </head>
-<style>
-  body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-</style>
+
 <body class="g-sidenav-show bg-gray-100">
   <!-- Sidebar -->
   <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3">
@@ -309,9 +310,10 @@
             </td>
             <td class="align-middle text-center">
               ${offer.driver_first_name ? `
-                <p class="text-xs font-weight-bold mb-0">${offer.driver_first_name}</p>
+                <p class="text-xs font-weight-bold mb-0"><i class="fas fa-user-check text-success"></i> ${offer.driver_first_name}</p>
                 <p class="text-xs text-secondary mb-0">${offer.vehicle_make} ${offer.vehicle_model}</p>
-              ` : '<span class="badge badge-sm bg-gradient-secondary">No driver</span>'}
+                <p class="text-xs text-secondary mb-0">${offer.vehicle_plate}</p>
+              ` : `<span class="badge badge-sm bg-gradient-secondary"><i class="fas fa-user-times"></i> No driver</span>`}
             </td>
             <td class="align-middle">
               <button class="btn btn-link text-secondary mb-0 px-3" onclick="viewOffer(${offer.id})">
@@ -337,7 +339,7 @@
           <div class="col-md-6">
             <p><strong>Offer ID:</strong> #${offer.id}</p>
             <p><strong>Client:</strong> ${client ? client.email : 'Unknown'}</p>
-            <p><strong>Description:</strong> <span class="offer-description">${offer.description}</span></p>
+            <p><strong>Description:</strong> ${offer.description}</p>
             <p><strong>Representative:</strong> ${offer.company_representative}</p>
             <p><strong>Emergency Phone:</strong> ${offer.emergency_phone}</p>
           </div>

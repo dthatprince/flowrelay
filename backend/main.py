@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from database import Base, engine
-from routes import auth, client, admin
+from routes import auth, client, admin, driver
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import uvicorn
@@ -13,6 +13,7 @@ app = FastAPI(title="Flow Relay API", version="1.0.0")
 # Include routers
 app.include_router(auth.router)
 app.include_router(client.router)
+app.include_router(driver.router)
 app.include_router(admin.router)
 
 @app.get("/")
