@@ -5,6 +5,7 @@ from config import PROMAILER_API_KEY, FROM_EMAIL, BASE_URL
 
 logger = logging.getLogger(__name__)
 
+'''
 PROMAILER_API_URL = "https://api.promailer.dev/v1/messages/send"
 
 async def send_verification_email(to_email: str, token: str):
@@ -50,3 +51,12 @@ async def send_verification_email(to_email: str, token: str):
     except Exception as e:
         logger.exception(f"✗ Exception while sending email to {to_email}: {e}")
         raise
+'''
+
+def send_verification_email(email: str, token: str):
+    """
+    Simulate sending email - in production, use actual email service
+    like SendGrid, AWS SES, or SMTP
+    """
+    verification_link = f"http://localhost:8000/verify-email?token={token}"
+    print(f"Verification email sent to {email}: {verification_link}")
