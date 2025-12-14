@@ -76,7 +76,7 @@ class AuthManager {
     // Logout handler
     logout() {
         this.removeToken();
-        window.location.href = '/index.html';
+        window.location.href = '../index.html';
     }
 
     // Redirect based on role
@@ -89,11 +89,11 @@ class AuthManager {
         }
 
         if (user.role === 'admin') {
-            window.location.href = '/admin/dashboard.html';
+            window.location.href = './admin/dashboard.html';
         } else if (user.role === 'client') {
-            window.location.href = '/client/dashboard.html';
+            window.location.href = './client/dashboard.html';
         } else if (user.role === 'driver') {
-            window.location.href = '/driver/dashboard.html';
+            window.location.href = './driver/dashboard.html';
         }
     }
 
