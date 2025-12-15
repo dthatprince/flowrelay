@@ -55,8 +55,18 @@ async def send_verification_email(to_email: str, token: str):
 
 def send_verification_email(email: str, token: str):
     """
-    Simulate sending email - in production, use actual email service
-    like SendGrid, AWS SES, or SMTP
+    Log the verification URL (Render captures stdout).
+    Use this for development/testing when no email service is configured.
     """
-    verification_link = f"http://localhost:8000/verify-email?token={token}"
-    print(f"Verification email sent to {email}: {verification_link}")
+
+    BASE_URL = os.getenv(
+        "BASE_URL",
+        "http://localhost:8000"  # local fallback
+    )
+
+    verification_link = f"{BASE_URL}/verify-email?token={token}"
+
+    print("==== EMAIL VERIFICATION ====")
+    print(f"To: {email}")
+    print(f"Verify URL: {verification_link}")
+    print("============================")
