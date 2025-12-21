@@ -66,7 +66,7 @@ def send_verification_email(email: str, token: str):
 
     verification_link = f"{BASE_URL}/verify-email?token={token}"
 
-    print("==== EMAIL VERIFICATION ====")
-    print(f"To: {email}")
-    print(f"Verify URL: {verification_link}")
-    print("============================")
+    print("==== EMAIL VERIFICATION ====", flush=True)
+    print(f"To: {email}", flush=True)
+    print(f"Verify URL: {verification_link}", flush=True)
+    print("============================", flush=True)
