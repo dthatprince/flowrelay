@@ -107,6 +107,86 @@
     </nav>
 
     <div class="container-fluid py-4">
+      <!-- Statistics Row -->
+      <div class="row mb-4">
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Drivers</p>
+                    <h5 class="font-weight-bolder mb-0" id="totalDrivers">0</h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-single-02 text-lg opacity-10"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Available</p>
+                    <h5 class="font-weight-bolder mb-0" id="availableDrivers">0</h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                    <i class="ni ni-check-bold text-lg opacity-10"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Busy</p>
+                    <h5 class="font-weight-bolder mb-0" id="busyDrivers">0</h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                    <i class="ni ni-time-alarm text-lg opacity-10"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Offline</p>
+                    <h5 class="font-weight-bolder mb-0" id="offlineDrivers">0</h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-secondary shadow text-center border-radius-md">
+                    <i class="ni ni-button-power text-lg opacity-10"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Filter Buttons -->
       <div class="row mb-3">
         <div class="col-12">
@@ -186,34 +266,48 @@
       window.location.href = '../index.html';
     }
 
-    let allUsers = [];
     let allDrivers = [];
+    let allUsers = [];
 
     // Load drivers
     async function loadDrivers() {
       try {
+        // Get all driver profiles using the API
+        allDrivers = await api.getAllDrivers();
+        
+        // Get all users to map emails
         allUsers = await api.getAllUsers();
-        const driverUsers = allUsers.filter(u => u.role === 'driver');
         
-        // Get driver profiles for each driver user
-        allDrivers = [];
-        for (const user of driverUsers) {
-          try {
-            // Note: Admin would need special endpoint to get all driver profiles
-            // For now, we'll show users with driver role
-            allDrivers.push({
-              ...user,
-              isDriverUser: true
-            });
-          } catch (error) {
-            console.log('No profile for driver:', user.email);
-          }
-        }
+        // Merge driver data with user data
+        allDrivers = allDrivers.map(driver => {
+          const user = allUsers.find(u => u.id === driver.user_id);
+          return {
+            ...driver,
+            email: user ? user.email : 'Unknown',
+            is_verified: user ? user.is_verified : 'false'
+          };
+        });
         
+        updateStatistics();
         displayDrivers(allDrivers);
       } catch (error) {
+        console.error('Error loading drivers:', error);
         showToast('Failed to load drivers', 'error');
+        document.getElementById('driversTableBody').innerHTML = 
+          '<tr><td colspan="7" class="text-center py-4 text-danger">Failed to load drivers</td></tr>';
       }
+    }
+
+    function updateStatistics() {
+      const total = allDrivers.length;
+      const available = allDrivers.filter(d => d.status === 'available').length;
+      const busy = allDrivers.filter(d => d.status === 'busy').length;
+      const offline = allDrivers.filter(d => d.status === 'offline').length;
+
+      document.getElementById('totalDrivers').textContent = total;
+      document.getElementById('availableDrivers').textContent = available;
+      document.getElementById('busyDrivers').textContent = busy;
+      document.getElementById('offlineDrivers').textContent = offline;
     }
 
     function displayDrivers(drivers) {
@@ -225,7 +319,7 @@
       }
       
       tbody.innerHTML = drivers.map(driver => `
-        <tr data-status="${driver.status || 'unknown'}">
+        <tr data-status="${driver.status}">
           <td>
             <div class="d-flex px-2 py-1">
               <div>
@@ -234,26 +328,22 @@
                 </div>
               </div>
               <div class="d-flex flex-column justify-content-center">
-                <h6 class="mb-0 text-sm">${driver.email}</h6>
-                <p class="text-xs text-secondary mb-0">ID: ${driver.id}</p>
+                <h6 class="mb-0 text-sm">${driver.first_name} ${driver.last_name}</h6>
+                <p class="text-xs text-secondary mb-0">${driver.email}</p>
               </div>
             </div>
           </td>
           <td>
-            ${driver.vehicle_make ? `
-              <p class="text-xs font-weight-bold mb-0">${driver.vehicle_color} ${driver.vehicle_make} ${driver.vehicle_model}</p>
-              <p class="text-xs text-secondary mb-0">Plate: ${driver.vehicle_plate}</p>
-            ` : '<p class="text-xs text-secondary">Profile incomplete</p>'}
+            <p class="text-xs font-weight-bold mb-0">${driver.vehicle_color} ${driver.vehicle_make} ${driver.vehicle_model}</p>
+            <p class="text-xs text-secondary mb-0">Plate: ${driver.vehicle_plate}</p>
           </td>
           <td>
-            ${driver.license_number ? `
-              <p class="text-xs font-weight-bold mb-0">${driver.license_number}</p>
-              <p class="text-xs text-secondary mb-0">Exp: ${driver.license_expiry}</p>
-            ` : '<p class="text-xs text-secondary">-</p>'}
+            <p class="text-xs font-weight-bold mb-0">${driver.license_number}</p>
+            <p class="text-xs text-secondary mb-0">Exp: ${driver.license_expiry}</p>
           </td>
           <td class="align-middle text-center">
             <span class="badge badge-sm bg-gradient-${driver.status === 'available' ? 'success' : driver.status === 'busy' ? 'warning' : 'secondary'}">
-              ${driver.status ? driver.status.toUpperCase() : 'NO PROFILE'}
+              ${driver.status ? driver.status.toUpperCase() : 'UNKNOWN'}
             </span>
           </td>
           <td class="align-middle text-center">
@@ -265,74 +355,88 @@
             <span class="text-xs font-weight-bold">${driver.total_deliveries || 0}</span>
           </td>
           <td class="align-middle">
-            <button class="btn btn-link text-secondary mb-0" onclick="viewDriver(${driver.id})">
+            <button class="btn btn-link text-secondary mb-0 px-2" onclick="viewDriver(${driver.id})" title="View Details">
               <i class="fas fa-eye text-xs"></i>
             </button>
-            ${driver.status ? `
             <div class="dropdown d-inline">
-              <button class="btn btn-link text-info mb-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              <button class="btn btn-link text-info mb-0 px-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Change Status">
                 <i class="fas fa-toggle-on text-xs"></i>
               </button>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'available')">
+                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'available'); return false;">
                   <i class="fas fa-check text-success me-2"></i>Available
                 </a></li>
-                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'busy')">
+                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'busy'); return false;">
                   <i class="fas fa-clock text-warning me-2"></i>Busy
                 </a></li>
-                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'offline')">
+                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'offline'); return false;">
                   <i class="fas fa-times text-secondary me-2"></i>Offline
                 </a></li>
               </ul>
             </div>
-            ` : ''}
           </td>
         </tr>
       `).join('');
     }
 
-    function viewDriver(userId) {
-      const driver = allDrivers.find(d => d.id === userId);
+    function viewDriver(driverId) {
+      const driver = allDrivers.find(d => d.id === driverId);
       if (!driver) return;
 
       const content = `
         <div class="row">
           <div class="col-md-6">
             <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Personal Info</h6>
+            <p><strong>Name:</strong> ${driver.first_name} ${driver.last_name}</p>
             <p><strong>Email:</strong> ${driver.email}</p>
-            <p><strong>Phone:</strong> ${driver.phone_number || '-'}</p>
-            <p><strong>Status:</strong> <span class="badge bg-gradient-${driver.status === 'available' ? 'success' : driver.status === 'busy' ? 'warning' : 'secondary'}">${driver.status || 'No profile'}</span></p>
-            <p><strong>Member Since:</strong> ${formatDate(driver.created_at)}</p>
+            <p><strong>Phone:</strong> ${driver.phone_number}</p>
+            <p><strong>Status:</strong> <span class="badge bg-gradient-${driver.status === 'available' ? 'success' : driver.status === 'busy' ? 'warning' : 'secondary'}">${driver.status ? driver.status.toUpperCase() : 'UNKNOWN'}</span></p>
+            <p><strong>Account Status:</strong> <span class="badge bg-gradient-${driver.is_verified === 'true' ? 'success' : 'warning'}">${driver.is_verified === 'true' ? 'Verified' : 'Unverified'}</span></p>
           </div>
           <div class="col-md-6">
             <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Performance</h6>
             <p><strong>Rating:</strong> <i class="fas fa-star text-warning"></i> ${driver.rating || '5.0'}</p>
             <p><strong>Total Deliveries:</strong> ${driver.total_deliveries || 0}</p>
-            <p><strong>Account Status:</strong> <span class="badge bg-gradient-${driver.is_verified === 'true' ? 'success' : 'warning'}">${driver.is_verified === 'true' ? 'Verified' : 'Unverified'}</span></p>
+            <p><strong>Member Since:</strong> ${formatDate(driver.created_at)}</p>
           </div>
         </div>
-        ${driver.vehicle_make ? `
-          <hr>
-          <div class="row">
-            <div class="col-md-6">
-              <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Vehicle Info</h6>
-              <p><strong>Make/Model:</strong> ${driver.vehicle_make} ${driver.vehicle_model} (${driver.vehicle_year})</p>
-              <p><strong>Color:</strong> ${driver.vehicle_color}</p>
-              <p><strong>Plate:</strong> ${driver.vehicle_plate}</p>
-            </div>
-            <div class="col-md-6">
-              <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">License & Insurance</h6>
-              <p><strong>License:</strong> ${driver.license_number}</p>
-              <p><strong>License Expiry:</strong> ${driver.license_expiry}</p>
-              <p><strong>Insurance:</strong> ${driver.insurance_number}</p>
-              <p><strong>Insurance Expiry:</strong> ${driver.insurance_expiry}</p>
-            </div>
+        <hr>
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Vehicle Info</h6>
+            <p><strong>Make/Model:</strong> ${driver.vehicle_make} ${driver.vehicle_model}</p>
+            <p><strong>Year:</strong> ${driver.vehicle_year}</p>
+            <p><strong>Color:</strong> ${driver.vehicle_color}</p>
+            <p><strong>Plate:</strong> ${driver.vehicle_plate}</p>
           </div>
-        ` : '<hr><p class="text-center text-muted">Driver profile not completed yet</p>'}
+          <div class="col-md-6">
+            <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">License & Insurance</h6>
+            <p><strong>License:</strong> ${driver.license_number}</p>
+            <p><strong>License Expiry:</strong> ${driver.license_expiry}</p>
+            <p><strong>Insurance:</strong> ${driver.insurance_number}</p>
+            <p><strong>Insurance Expiry:</strong> ${driver.insurance_expiry}</p>
+          </div>
+        </div>
       `;
 
       document.getElementById('driverDetailsContent').innerHTML = content;
       new bootstrap.Modal(document.getElementById('viewDriverModal')).show();
+    }
+
+    // Update driver status
+    async function updateDriverStatus(driverId, status) {
+      const driver = allDrivers.find(d => d.id === driverId);
+      if (!confirm(`Change ${driver.first_name} ${driver.last_name}'s status to ${status}?`)) {
+        return;
+      }
+      
+      try {
+        await api.adminUpdateDriverStatus(driverId, status);
+        showToast(`Driver status updated to ${status}`, 'success');
+        loadDrivers();
+      } catch (error) {
+        showToast(error.message || 'Failed to update driver status', 'error');
+      }
     }
 
     // Filter drivers
@@ -357,25 +461,13 @@
       const searchTerm = e.target.value.toLowerCase();
       const filtered = allDrivers.filter(driver =>
         driver.email.toLowerCase().includes(searchTerm) ||
-        (driver.first_name && driver.first_name.toLowerCase().includes(searchTerm)) ||
-        (driver.last_name && driver.last_name.toLowerCase().includes(searchTerm)) ||
-        (driver.vehicle_plate && driver.vehicle_plate.toLowerCase().includes(searchTerm))
+        driver.first_name.toLowerCase().includes(searchTerm) ||
+        driver.last_name.toLowerCase().includes(searchTerm) ||
+        driver.vehicle_plate.toLowerCase().includes(searchTerm) ||
+        driver.license_number.toLowerCase().includes(searchTerm)
       );
       displayDrivers(filtered);
     }, 300));
-
-    // Update driver status
-    async function updateDriverStatus(driverId, status) {
-      if (!confirm(`Change driver status to ${status}?`)) return;
-      
-      try {
-        await api.adminUpdateDriverStatus(driverId, status);
-        showToast(`Driver status updated to ${status}`, 'success');
-        loadDrivers();
-      } catch (error) {
-        showToast(error.message || 'Failed to update driver status', 'error');
-      }
-    }
 
     loadDrivers();
   </script>
