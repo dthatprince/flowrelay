@@ -46,7 +46,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active" href="drivers.html">
+          <a class="nav-link" href="drivers.html">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-car text-success"></i>
             </div>
@@ -54,7 +54,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="offers.html">
+          <a class="nav-link active" href="offers.html">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-truck text-warning"></i>
             </div>
@@ -78,20 +78,20 @@
 
   <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
     <!-- Navbar -->
-    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur">
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" navbar-scroll="true">
       <div class="container-fluid py-1 px-3">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
             <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="dashboard.html">Dashboard</a></li>
-            <li class="breadcrumb-item text-sm text-dark active">Drivers</li>
+            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Offers</li>
           </ol>
-          <h6 class="font-weight-bolder mb-0">Manage Drivers</h6>
+          <h6 class="font-weight-bolder mb-0">Manage Offers</h6>
         </nav>
         <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
           <div class="ms-md-auto pe-md-3 d-flex align-items-center">
             <div class="input-group">
               <span class="input-group-text text-body"><i class="fas fa-search"></i></span>
-              <input type="text" class="form-control" placeholder="Search drivers..." id="searchInput">
+              <input type="text" class="form-control" placeholder="Search offers..." id="searchInput">
             </div>
           </div>
           <ul class="navbar-nav justify-content-end">
@@ -111,38 +111,40 @@
       <div class="row mb-3">
         <div class="col-12">
           <div class="btn-group" role="group">
-            <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All Drivers</button>
-            <button type="button" class="btn btn-sm btn-outline-success" data-filter="available">Available</button>
-            <button type="button" class="btn btn-sm btn-outline-warning" data-filter="busy">Busy</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" data-filter="offline">Offline</button>
+            <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
+            <button type="button" class="btn btn-sm btn-outline-warning" data-filter="pending">Pending</button>
+            <button type="button" class="btn btn-sm btn-outline-info" data-filter="matched">Matched</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-filter="in_progress">In Progress</button>
+            <button type="button" class="btn btn-sm btn-outline-success" data-filter="completed">Completed</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-filter="cancelled">Cancelled</button>
           </div>
         </div>
       </div>
 
-      <!-- Drivers Table -->
+      <!-- Offers Table -->
       <div class="row">
         <div class="col-12">
           <div class="card mb-4">
             <div class="card-header pb-0">
-              <h6>All Drivers</h6>
+              <h6>All Transport Offers</h6>
             </div>
             <div class="card-body px-0 pt-0 pb-2">
               <div class="table-responsive p-0">
                 <table class="table align-items-center mb-0">
                   <thead>
                     <tr>
-                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Driver</th>
-                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Vehicle</th>
-                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">License</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ID</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Client</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Description</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Pickup</th>
                       <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Rating</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Deliveries</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Driver</th>
                       <th class="text-secondary opacity-7"></th>
                     </tr>
                   </thead>
-                  <tbody id="driversTableBody">
+                  <tbody id="offersTableBody">
                     <tr>
-                      <td colspan="7" class="text-center py-4">Loading drivers...</td>
+                      <td colspan="7" class="text-center py-4">Loading offers...</td>
                     </tr>
                   </tbody>
                 </table>
@@ -154,19 +156,113 @@
     </div>
   </main>
 
-  <!-- View Driver Modal -->
-  <div class="modal fade" id="viewDriverModal" tabindex="-1" aria-hidden="true">
+  <!-- View Offer Modal -->
+  <div class="modal fade" id="viewOfferModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Driver Details</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title">Offer Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body" id="driverDetailsContent">
-          Loading...
-        </div>
+        <div class="modal-body" id="offerDetailsContent">Loading...</div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="assignDriverBtn">Assign Driver</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign Driver Modal - UPDATED -->
+  <div class="modal fade" id="assignDriverModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Assign Driver to Offer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="assignDriverForm">
+            <input type="hidden" id="assignOfferId">
+            
+            <!-- Method Selection -->
+            <div class="mb-3">
+              <label class="form-label">Assignment Method</label>
+              <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" name="assignMethod" id="methodDropdown" value="dropdown" checked>
+                <label class="btn btn-outline-primary" for="methodDropdown">
+                  <i class="fas fa-list me-2"></i>Select from List
+                </label>
+                
+                <input type="radio" class="btn-check" name="assignMethod" id="methodEmail" value="email">
+                <label class="btn btn-outline-primary" for="methodEmail">
+                  <i class="fas fa-envelope me-2"></i>Search by Email
+                </label>
+              </div>
+            </div>
+
+            <!-- Dropdown Selection -->
+            <div id="dropdownSection" class="mb-3">
+              <label for="driverSelect" class="form-label">Select Driver *</label>
+              <select class="form-select" id="driverSelect" required>
+                <option value="">Loading drivers...</option>
+              </select>
+              <small class="text-muted">Only showing available drivers</small>
+            </div>
+
+            <!-- Email Search Section -->
+            <div id="emailSection" class="mb-3" style="display: none;">
+              <label for="driverEmail" class="form-label">Driver Email *</label>
+              <div class="input-group">
+                <input type="email" class="form-control" id="driverEmail" placeholder="driver@example.com">
+                <button type="button" class="btn btn-primary" id="searchDriverBtn">
+                  <i class="fas fa-search"></i> Search
+                </button>
+              </div>
+              <small class="text-muted">Enter driver's email to auto-fill information</small>
+            </div>
+
+            <!-- Driver Info Display -->
+            <div id="driverInfoDisplay" style="display: none;">
+              <hr>
+              <h6 class="text-uppercase text-xs font-weight-bolder">Selected Driver Information</h6>
+              <div class="card bg-light">
+                <div class="card-body p-3">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Name:</strong> <span id="displayName">-</span></p>
+                      <p class="mb-1"><strong>Phone:</strong> <span id="displayPhone">-</span></p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Vehicle:</strong> <span id="displayVehicle">-</span></p>
+                      <p class="mb-0"><strong>Plate:</strong> <span id="displayPlate">-</span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+            
+            <!-- Status Selection -->
+            <div class="mb-3">
+              <label for="offerStatus" class="form-label">Update Offer Status *</label>
+              <select class="form-select" id="offerStatus" required>
+                <option value="matched">Matched - Driver assigned</option>
+                <option value="in_progress">In Progress - Delivery started</option>
+                <option value="completed">Completed - Delivery finished</option>
+              </select>
+            </div>
+
+            <div class="alert alert-info" role="alert">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Note:</strong> Driver information is automatically pulled from their profile. No manual entry needed!
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveDriverBtn" disabled>Assign Driver</button>
         </div>
       </div>
     </div>
@@ -174,7 +270,6 @@
 
   <script src="../assets/js/core/popper.min.js"></script>
   <script src="../assets/js/core/bootstrap.min.js"></script>
-  <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
   <script src="../assets/js/soft-ui-dashboard.min.js"></script>
   
   <script src="../assets/js/api.js"></script>
@@ -186,198 +281,297 @@
       window.location.href = '../index.html';
     }
 
+    let allOffers = [];
     let allUsers = [];
-    let allDrivers = [];
+    let currentOfferId = null;
+    let selectedDriver = null;
 
-    // Load drivers
-    async function loadDrivers() {
+    async function loadData() {
       try {
-        allUsers = await api.getAllUsers();
-        const driverUsers = allUsers.filter(u => u.role === 'driver');
+        [allOffers, allUsers] = await Promise.all([
+          api.getAllOffers(),
+          api.getAllUsers()
+        ]);
         
-        // Get driver profiles for each driver user
-        allDrivers = [];
-        for (const user of driverUsers) {
-          try {
-            // Note: Admin would need special endpoint to get all driver profiles
-            // For now, we'll show users with driver role
-            allDrivers.push({
-              ...user,
-              isDriverUser: true
-            });
-          } catch (error) {
-            console.log('No profile for driver:', user.email);
-          }
+        const urlParams = new URLSearchParams(window.location.search);
+        const statusFilter = urlParams.get('status');
+        
+        if (statusFilter) {
+          const filtered = allOffers.filter(o => o.status === statusFilter);
+          displayOffers(filtered);
+          document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === statusFilter);
+          });
+        } else {
+          displayOffers(allOffers);
+        }
+      } catch (error) {
+        showToast('Failed to load data', 'error');
+      }
+    }
+
+    function displayOffers(offers) {
+      const tbody = document.getElementById('offersTableBody');
+      
+      if (offers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No offers found</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = offers.map(offer => {
+        const client = allUsers.find(u => u.id === offer.client_id);
+        const clientEmail = client ? client.email : 'Unknown';
+        
+        return `
+          <tr data-status="${offer.status}">
+            <td><p class="text-xs font-weight-bold mb-0 ps-3">#${offer.id}</p></td>
+            <td>
+              <div class="d-flex px-2 py-1">
+                <div class="d-flex flex-column justify-content-center">
+                  <h6 class="mb-0 text-sm">${clientEmail}</h6>
+                  <p class="text-xs text-secondary mb-0">${offer.company_representative}</p>
+                </div>
+              </div>
+            </td>
+            <td><p class="text-xs font-weight-bold mb-0">${offer.description.substring(0, 40)}...</p></td>
+            <td>
+              <p class="text-xs font-weight-bold mb-0">${offer.pickup_date}</p>
+              <p class="text-xs text-secondary mb-0">${offer.pickup_time}</p>
+            </td>
+            <td class="align-middle text-center">
+              <span class="badge badge-sm bg-gradient-${getStatusBadge(offer.status)}">${getStatusDisplay(offer.status)}</span>
+            </td>
+            <td class="align-middle text-center">
+              ${offer.driver_first_name ? `
+                <p class="text-xs font-weight-bold mb-0"><i class="fas fa-user-check text-success"></i> ${offer.driver_first_name}</p>
+                <p class="text-xs text-secondary mb-0">${offer.vehicle_make} ${offer.vehicle_model}</p>
+                <p class="text-xs text-secondary mb-0">${offer.vehicle_plate}</p>
+              ` : '<span class="badge badge-sm bg-gradient-secondary"><i class="fas fa-user-times"></i> No driver</span>'}
+            </td>
+            <td class="align-middle">
+              <button class="btn btn-link text-secondary mb-0 px-3" onclick="viewOffer(${offer.id})">
+                <i class="fas fa-eye text-xs"></i>
+              </button>
+              <button class="btn btn-link text-primary mb-0 px-3" onclick="openAssignDriver(${offer.id})">
+                <i class="fas fa-user-plus text-xs"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function viewOffer(offerId) {
+      currentOfferId = offerId;
+      const offer = allOffers.find(o => o.id === offerId);
+      const client = allUsers.find(u => u.id === offer.client_id);
+      
+      const content = `
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Offer ID:</strong> #${offer.id}</p>
+            <p><strong>Client:</strong> ${client ? client.email : 'Unknown'}</p>
+            <p><strong>Description:</strong> ${offer.description}</p>
+            <p><strong>Representative:</strong> ${offer.company_representative}</p>
+            <p><strong>Emergency Phone:</strong> ${offer.emergency_phone}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Pickup Date:</strong> ${offer.pickup_date}</p>
+            <p><strong>Pickup Time:</strong> ${offer.pickup_time}</p>
+            <p><strong>Status:</strong> <span class="badge bg-gradient-${getStatusBadge(offer.status)}">${getStatusDisplay(offer.status)}</span></p>
+            <p><strong>Created:</strong> ${formatDate(offer.created_at)}</p>
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col-12">
+            <p><strong>Pickup:</strong><br>${offer.pickup_address}</p>
+            <p><strong>Dropoff:</strong><br>${offer.dropoff_address}</p>
+            ${offer.additional_service ? `<p><strong>Additional:</strong><br>${offer.additional_service}</p>` : ''}
+          </div>
+        </div>
+        ${offer.driver_first_name ? `
+          <hr>
+          <div class="row">
+            <div class="col-12">
+              <h6>Driver Assignment</h6>
+              <p><strong>Driver:</strong> ${offer.driver_first_name}</p>
+              <p><strong>Phone:</strong> ${offer.driver_phone}</p>
+              <p><strong>Vehicle:</strong> ${offer.vehicle_color} ${offer.vehicle_make} ${offer.vehicle_model}</p>
+              <p><strong>Plate:</strong> ${offer.vehicle_plate}</p>
+            </div>
+          </div>
+        ` : '<hr><p class="text-center text-muted">No driver assigned yet</p>'}
+      `;
+      
+      document.getElementById('offerDetailsContent').innerHTML = content;
+      new bootstrap.Modal(document.getElementById('viewOfferModal')).show();
+    }
+
+    async function openAssignDriver(offerId) {
+      document.getElementById('assignOfferId').value = offerId;
+      selectedDriver = null;
+      document.getElementById('driverInfoDisplay').style.display = 'none';
+      document.getElementById('saveDriverBtn').disabled = true;
+      
+      // Load available drivers
+      await loadAvailableDrivers();
+      
+      const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewOfferModal'));
+      if (viewModal) viewModal.hide();
+      
+      new bootstrap.Modal(document.getElementById('assignDriverModal')).show();
+    }
+
+    async function loadAvailableDrivers() {
+      try {
+        const drivers = await api.getAvailableDrivers();
+        const select = document.getElementById('driverSelect');
+        
+        if (drivers.length === 0) {
+          select.innerHTML = '<option value="">No available drivers</option>';
+          return;
         }
         
-        displayDrivers(allDrivers);
+        select.innerHTML = '<option value="">-- Select a driver --</option>' + 
+          drivers.map(d => `
+            <option value="${d.id}" 
+                    data-firstname="${d.first_name}"
+                    data-lastname="${d.last_name || ''}"
+                    data-phone="${d.phone_number}"
+                    data-make="${d.vehicle_make}"
+                    data-model="${d.vehicle_model}"
+                    data-color="${d.vehicle_color}"
+                    data-plate="${d.vehicle_plate}">
+              ${d.first_name} ${d.last_name || ''} - ${d.vehicle_color} ${d.vehicle_make} ${d.vehicle_model} (${d.vehicle_plate})
+            </option>
+          `).join('');
+          
       } catch (error) {
         showToast('Failed to load drivers', 'error');
       }
     }
 
-    function displayDrivers(drivers) {
-      const tbody = document.getElementById('driversTableBody');
+    // Toggle between dropdown and email search
+    document.querySelectorAll('input[name="assignMethod"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const method = e.target.value;
+        document.getElementById('dropdownSection').style.display = method === 'dropdown' ? 'block' : 'none';
+        document.getElementById('emailSection').style.display = method === 'email' ? 'block' : 'none';
+        document.getElementById('driverInfoDisplay').style.display = 'none';
+        selectedDriver = null;
+        document.getElementById('saveDriverBtn').disabled = true;
+      });
+    });
+
+    // Handle driver selection from dropdown
+    document.getElementById('driverSelect').addEventListener('change', (e) => {
+      const select = e.target;
+      const option = select.options[select.selectedIndex];
       
-      if (drivers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No drivers found</td></tr>';
+      if (!option.value) {
+        document.getElementById('driverInfoDisplay').style.display = 'none';
+        selectedDriver = null;
+        document.getElementById('saveDriverBtn').disabled = true;
         return;
       }
       
-      tbody.innerHTML = drivers.map(driver => `
-        <tr data-status="${driver.status || 'unknown'}">
-          <td>
-            <div class="d-flex px-2 py-1">
-              <div>
-                <div class="icon icon-shape icon-sm border-radius-md bg-gradient-success d-flex align-items-center justify-content-center me-2">
-                  <i class="fas fa-car text-white"></i>
-                </div>
-              </div>
-              <div class="d-flex flex-column justify-content-center">
-                <h6 class="mb-0 text-sm">${driver.email}</h6>
-                <p class="text-xs text-secondary mb-0">ID: ${driver.id}</p>
-              </div>
-            </div>
-          </td>
-          <td>
-            ${driver.vehicle_make ? `
-              <p class="text-xs font-weight-bold mb-0">${driver.vehicle_color} ${driver.vehicle_make} ${driver.vehicle_model}</p>
-              <p class="text-xs text-secondary mb-0">Plate: ${driver.vehicle_plate}</p>
-            ` : '<p class="text-xs text-secondary">Profile incomplete</p>'}
-          </td>
-          <td>
-            ${driver.license_number ? `
-              <p class="text-xs font-weight-bold mb-0">${driver.license_number}</p>
-              <p class="text-xs text-secondary mb-0">Exp: ${driver.license_expiry}</p>
-            ` : '<p class="text-xs text-secondary">-</p>'}
-          </td>
-          <td class="align-middle text-center">
-            <span class="badge badge-sm bg-gradient-${driver.status === 'available' ? 'success' : driver.status === 'busy' ? 'warning' : 'secondary'}">
-              ${driver.status ? driver.status.toUpperCase() : 'NO PROFILE'}
-            </span>
-          </td>
-          <td class="align-middle text-center">
-            <span class="text-xs font-weight-bold">
-              <i class="fas fa-star text-warning"></i> ${driver.rating || '5.0'}
-            </span>
-          </td>
-          <td class="align-middle text-center">
-            <span class="text-xs font-weight-bold">${driver.total_deliveries || 0}</span>
-          </td>
-          <td class="align-middle">
-            <button class="btn btn-link text-secondary mb-0" onclick="viewDriver(${driver.id})">
-              <i class="fas fa-eye text-xs"></i>
-            </button>
-            ${driver.status ? `
-            <div class="dropdown d-inline">
-              <button class="btn btn-link text-info mb-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                <i class="fas fa-toggle-on text-xs"></i>
-              </button>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'available')">
-                  <i class="fas fa-check text-success me-2"></i>Available
-                </a></li>
-                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'busy')">
-                  <i class="fas fa-clock text-warning me-2"></i>Busy
-                </a></li>
-                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'offline')">
-                  <i class="fas fa-times text-secondary me-2"></i>Offline
-                </a></li>
-              </ul>
-            </div>
-            ` : ''}
-          </td>
-        </tr>
-      `).join('');
+      selectedDriver = {
+        id: option.value,
+        first_name: option.getAttribute('data-firstname'),
+        last_name: option.getAttribute('data-lastname'),
+        phone_number: option.getAttribute('data-phone'),
+        vehicle_make: option.getAttribute('data-make'),
+        vehicle_model: option.getAttribute('data-model'),
+        vehicle_color: option.getAttribute('data-color'),
+        vehicle_plate: option.getAttribute('data-plate')
+      };
+      
+      displayDriverInfo(selectedDriver);
+      document.getElementById('saveDriverBtn').disabled = false;
+    });
+
+    // Handle driver search by email
+    document.getElementById('searchDriverBtn').addEventListener('click', async () => {
+      const email = document.getElementById('driverEmail').value.trim();
+      
+      if (!email) {
+        showToast('Please enter an email address', 'error');
+        return;
+      }
+      
+      try {
+        const driver = await api.getDriverByEmail(email);
+        selectedDriver = driver;
+        displayDriverInfo(driver);
+        document.getElementById('saveDriverBtn').disabled = false;
+        showToast('Driver found!', 'success');
+      } catch (error) {
+        showToast(error.message || 'Driver not found with this email', 'error');
+        document.getElementById('driverInfoDisplay').style.display = 'none';
+        selectedDriver = null;
+        document.getElementById('saveDriverBtn').disabled = true;
+      }
+    });
+
+    function displayDriverInfo(driver) {
+      document.getElementById('displayName').textContent = `${driver.first_name} ${driver.last_name || ''}`;
+      document.getElementById('displayPhone').textContent = driver.phone_number;
+      document.getElementById('displayVehicle').textContent = `${driver.vehicle_color} ${driver.vehicle_make} ${driver.vehicle_model}`;
+      document.getElementById('displayPlate').textContent = driver.vehicle_plate;
+      document.getElementById('driverInfoDisplay').style.display = 'block';
     }
 
-    function viewDriver(userId) {
-      const driver = allDrivers.find(d => d.id === userId);
-      if (!driver) return;
+    // Save driver assignment
+    document.getElementById('saveDriverBtn').addEventListener('click', async () => {
+      const offerId = document.getElementById('assignOfferId').value;
+      const status = document.getElementById('offerStatus').value;
+      
+      if (!selectedDriver) {
+        showToast('Please select or search for a driver', 'error');
+        return;
+      }
+      
+      try {
+        await api.assignDriverById(offerId, selectedDriver.id, status);
+        showToast('Driver assigned successfully!', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('assignDriverModal')).hide();
+        loadData();
+      } catch (error) {
+        showToast(error.message || 'Failed to assign driver', 'error');
+      }
+    });
 
-      const content = `
-        <div class="row">
-          <div class="col-md-6">
-            <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Personal Info</h6>
-            <p><strong>Email:</strong> ${driver.email}</p>
-            <p><strong>Phone:</strong> ${driver.phone_number || '-'}</p>
-            <p><strong>Status:</strong> <span class="badge bg-gradient-${driver.status === 'available' ? 'success' : driver.status === 'busy' ? 'warning' : 'secondary'}">${driver.status || 'No profile'}</span></p>
-            <p><strong>Member Since:</strong> ${formatDate(driver.created_at)}</p>
-          </div>
-          <div class="col-md-6">
-            <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Performance</h6>
-            <p><strong>Rating:</strong> <i class="fas fa-star text-warning"></i> ${driver.rating || '5.0'}</p>
-            <p><strong>Total Deliveries:</strong> ${driver.total_deliveries || 0}</p>
-            <p><strong>Account Status:</strong> <span class="badge bg-gradient-${driver.is_verified === 'true' ? 'success' : 'warning'}">${driver.is_verified === 'true' ? 'Verified' : 'Unverified'}</span></p>
-          </div>
-        </div>
-        ${driver.vehicle_make ? `
-          <hr>
-          <div class="row">
-            <div class="col-md-6">
-              <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Vehicle Info</h6>
-              <p><strong>Make/Model:</strong> ${driver.vehicle_make} ${driver.vehicle_model} (${driver.vehicle_year})</p>
-              <p><strong>Color:</strong> ${driver.vehicle_color}</p>
-              <p><strong>Plate:</strong> ${driver.vehicle_plate}</p>
-            </div>
-            <div class="col-md-6">
-              <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">License & Insurance</h6>
-              <p><strong>License:</strong> ${driver.license_number}</p>
-              <p><strong>License Expiry:</strong> ${driver.license_expiry}</p>
-              <p><strong>Insurance:</strong> ${driver.insurance_number}</p>
-              <p><strong>Insurance Expiry:</strong> ${driver.insurance_expiry}</p>
-            </div>
-          </div>
-        ` : '<hr><p class="text-center text-muted">Driver profile not completed yet</p>'}
-      `;
+    document.getElementById('assignDriverBtn').addEventListener('click', () => {
+      if (currentOfferId) openAssignDriver(currentOfferId);
+    });
 
-      document.getElementById('driverDetailsContent').innerHTML = content;
-      new bootstrap.Modal(document.getElementById('viewDriverModal')).show();
-    }
-
-    // Filter drivers
+    // Filter offers
     document.querySelectorAll('[data-filter]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
-
         const filter = e.target.dataset.filter;
-        let filtered = allDrivers;
-
-        if (filter !== 'all') {
-          filtered = allDrivers.filter(d => d.status === filter);
-        }
-
-        displayDrivers(filtered);
+        const filtered = filter === 'all' ? allOffers : allOffers.filter(o => o.status === filter);
+        displayOffers(filtered);
       });
     });
 
-    // Search functionality
+    // Search
     document.getElementById('searchInput').addEventListener('input', debounce((e) => {
       const searchTerm = e.target.value.toLowerCase();
-      const filtered = allDrivers.filter(driver =>
-        driver.email.toLowerCase().includes(searchTerm) ||
-        (driver.first_name && driver.first_name.toLowerCase().includes(searchTerm)) ||
-        (driver.last_name && driver.last_name.toLowerCase().includes(searchTerm)) ||
-        (driver.vehicle_plate && driver.vehicle_plate.toLowerCase().includes(searchTerm))
-      );
-      displayDrivers(filtered);
+      const filtered = allOffers.filter(offer => {
+        const client = allUsers.find(u => u.id === offer.client_id);
+        const clientEmail = client ? client.email.toLowerCase() : '';
+        return offer.description.toLowerCase().includes(searchTerm) ||
+               offer.pickup_address.toLowerCase().includes(searchTerm) ||
+               offer.dropoff_address.toLowerCase().includes(searchTerm) ||
+               clientEmail.includes(searchTerm);
+      });
+      displayOffers(filtered);
     }, 300));
 
-    // Update driver status
-    async function updateDriverStatus(driverId, status) {
-      if (!confirm(`Change driver status to ${status}?`)) return;
-      
-      try {
-        await api.adminUpdateDriverStatus(driverId, status);
-        showToast(`Driver status updated to ${status}`, 'success');
-        loadDrivers();
-      } catch (error) {
-        showToast(error.message || 'Failed to update driver status', 'error');
-      }
-    }
-
-    loadDrivers();
+    loadData();
   </script>
 </body>
 
