@@ -241,6 +241,37 @@ class API {
             method: 'GET',
         });
     }
+
+    // ADMIN DRIVER MANAGEMENT ENDPOINTS
+    async getAllDrivers() {
+        return this.request('/admin/drivers', {
+            method: 'GET',
+        });
+    }
+
+    async getAvailableDrivers() {
+        return this.request('/admin/drivers/available', {
+            method: 'GET',
+        });
+    }
+
+    async getDriverByEmail(email) {
+        return this.request(`/admin/drivers/by-email/${encodeURIComponent(email)}`, {
+            method: 'GET',
+        });
+    }
+
+    async adminUpdateDriverStatus(driverId, status) {
+        return this.request(`/admin/drivers/${driverId}/status?status=${status}`, {
+            method: 'PUT',
+        });
+    }
+
+    async assignDriverById(offerId, driverId, status) {
+        return this.request(`/admin/offers/${offerId}/assign-driver-by-id?driver_id=${driverId}&status=${status}`, {
+            method: 'PUT',
+        });
+    }
 }
 
 // Create global API instance

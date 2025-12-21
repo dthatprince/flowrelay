@@ -4,8 +4,8 @@ from typing import List
 from datetime import datetime
 
 from database import get_db
-from models import User, Offer
-from schemas import UserResponse, UserUpdate, OfferResponse, OfferUpdate, DriverAssignment
+from models import User, Offer, Driver
+from schemas import UserResponse, UserUpdate, OfferResponse, OfferUpdate, DriverAssignment, DriverResponse, UserRole
 from auth import require_admin
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -77,6 +77,98 @@ def admin_update_offer(offer_id: int, offer_update: OfferUpdate, current_user: U
         setattr(offer, key, value)
     
     offer.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(offer)
+    
+    return offer
+
+
+
+
+
+
+@router.get("/drivers", response_model=List[DriverResponse])
+def get_all_drivers(current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """Get all driver profiles"""
+    drivers = db.query(Driver).all()
+    return drivers
+
+@router.get("/drivers/available", response_model=List[DriverResponse])
+def get_available_drivers(current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """Get all available drivers"""
+    drivers = db.query(Driver).filter(Driver.status == "available").all()
+    return drivers
+
+@router.get("/drivers/by-email/{email}")
+def get_driver_by_email(email: str, current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """Get driver profile by email"""
+    # Find user with this email and driver role
+    user = db.query(User).filter(User.email == email, User.role == UserRole.DRIVER).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Driver not found with this email")
+    
+    # Get driver profile
+    driver = db.query(Driver).filter(Driver.user_id == user.id).first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver profile not found")
+    
+    return driver
+
+@router.put("/drivers/{driver_id}/status")
+def admin_update_driver_status(
+    driver_id: int,
+    status: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Admin can update driver status"""
+    driver = db.query(Driver).filter(Driver.id == driver_id).first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+    
+    valid_statuses = ["available", "busy", "offline"]
+    if status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+    
+    driver.status = status
+    driver.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": f"Driver status updated to {status}"}
+
+@router.put("/offers/{offer_id}/assign-driver-by-id")
+def assign_driver_by_id(
+    offer_id: int,
+    driver_id: int,
+    status: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Assign driver to offer using driver ID"""
+    offer = db.query(Offer).filter(Offer.id == offer_id).first()
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offer not found")
+    
+    driver = db.query(Driver).filter(Driver.id == driver_id).first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+    
+    # Assign driver to offer
+    offer.driver_id = driver.id
+    offer.driver_first_name = driver.first_name
+    offer.driver_phone = driver.phone_number
+    offer.vehicle_make = driver.vehicle_make
+    offer.vehicle_model = driver.vehicle_model
+    offer.vehicle_color = driver.vehicle_color
+    offer.vehicle_plate = driver.vehicle_plate
+    offer.status = status
+    offer.updated_at = datetime.utcnow()
+    
+    # Update driver status if starting delivery
+    if status in ["matched", "in_progress"]:
+        driver.status = "busy"
+        driver.updated_at = datetime.utcnow()
+    
     db.commit()
     db.refresh(offer)
     

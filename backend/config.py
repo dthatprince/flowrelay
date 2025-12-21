@@ -5,6 +5,9 @@ from fastapi_mail import ConnectionConfig
 # Load .env file
 load_dotenv()  
 
+# Application environment "dev" or "prod"
+ENV = os.getenv("ENV", "dev") 
+
 # Security & JWT
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
