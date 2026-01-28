@@ -10,7 +10,23 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Flow Relay API", version="1.0.0")
 
-# Include routers
+# Configure CORS - MUST be added BEFORE routers
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://flowrelay.onrender.com", 
+        "https://dthatprince.github.io",
+        "http://localhost:3000",  # for local development
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers AFTER CORS middleware
 app.include_router(auth.router)
 app.include_router(client.router)
 app.include_router(driver.router)
@@ -19,18 +35,6 @@ app.include_router(admin.router)
 @app.get("/")
 def root():
     return {"message": "Welcome to Flow Relay API"}
-
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://flowrelay.onrender.com", 
-        "https://dthatprince.github.io"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 if __name__ == "__main__":
