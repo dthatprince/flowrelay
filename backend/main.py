@@ -5,39 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import uvicorn
 
-
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Flow Relay API", version="1.0.0")
 
-# ------------------
-# Configure CORS 
-# ------------------
-ENV = os.getenv("ENV", "dev")
-
-if ENV == "prod":
-    origins = [
-        "https://flowrelay.onrender.com",
-        "https://dthatprince.github.io",
-    ]
-else:
-    origins = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-    ]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# ------------------
-# include routers
-# ------------------
+# Include routers
 app.include_router(auth.router)
 app.include_router(client.router)
 app.include_router(driver.router)
@@ -46,6 +19,18 @@ app.include_router(admin.router)
 @app.get("/")
 def root():
     return {"message": "Welcome to Flow Relay API"}
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://flowrelay.onrender.com", 
+        "https://dthatprince.github.io"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 if __name__ == "__main__":
