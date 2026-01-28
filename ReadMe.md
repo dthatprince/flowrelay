@@ -15,6 +15,10 @@ Client
 email: user@user.com
 password: 123456
 
+Driver
+email: driver@driver.com
+password: 123456
+
 ```
 
 # User Roles & Capabilities
