@@ -11,18 +11,9 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Flow Relay API", version="1.0.0")
 
-# Include routers
-app.include_router(auth.router)
-app.include_router(client.router)
-app.include_router(driver.router)
-app.include_router(admin.router)
-
-@app.get("/")
-def root():
-    return {"message": "Welcome to Flow Relay API"}
-
-
-# Configure CORS
+# ------------------
+# Configure CORS 
+# ------------------
 ENV = os.getenv("ENV", "dev")
 
 if ENV == "prod":
@@ -43,6 +34,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ------------------
+# include routers
+# ------------------
+app.include_router(auth.router)
+app.include_router(client.router)
+app.include_router(driver.router)
+app.include_router(admin.router)
+
+@app.get("/")
+def root():
+    return {"message": "Welcome to Flow Relay API"}
 
 
 if __name__ == "__main__":
