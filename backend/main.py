@@ -14,16 +14,18 @@ app = FastAPI(title="Flow Relay API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://flowrelay.onrender.com", 
-        "https://dthatprince.github.io",
-        "http://localhost:3000",  # for local development
+        "https://flowrelay.onrender.com",
+        "https://dthatprince.github.io",  # Your GitHub Pages
+        "http://localhost:3000",
         "http://localhost:8000",
         "http://127.0.0.1:3000",
-        "http://127.0.0.1:8000"
+        "http://127.0.0.1:8000",
+        "*"  # Allow all origins (for development/testing - remove in production)
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"]  # Expose all headers
 )
 
 # Include routers AFTER CORS middleware
