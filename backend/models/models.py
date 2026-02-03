@@ -16,6 +16,12 @@ class OfferStatus(str, enum.Enum):
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 
+class AccountStatus(str, enum.Enum):
+    PENDING = "pending"  # Email verified but waiting admin approval
+    APPROVED = "approved"  # Admin approved, can use system
+    REJECTED = "rejected"  # Admin rejected
+    SUSPENDED = "suspended"  # Admin suspended account
+
 class User(Base):
     __tablename__ = "users"
     
@@ -28,12 +34,21 @@ class User(Base):
     phone_number = Column(String, nullable=True)
     company_representative = Column(String, nullable=True)
     emergency_phone = Column(String, nullable=True)
+    
+    # Email verification (existing)
     is_verified = Column(String, default="false")
     verification_token = Column(String, nullable=True)
+    
+    # Account approval (NEW)
+    account_status = Column(SQLEnum(AccountStatus), default=AccountStatus.PENDING)
+    approval_notes = Column(String, nullable=True)  # Admin can add notes
+    approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Which admin approved
+    approved_at = Column(DateTime, nullable=True)
+    
     created_at = Column(DateTime, default=datetime.utcnow)
     
     offers = relationship("Offer", back_populates="client", foreign_keys="Offer.client_id")
-    driver_profile = relationship("Driver", back_populates="user", uselist=False)  # NEW
+    driver_profile = relationship("Driver", back_populates="user", uselist=False)
 
 class Driver(Base):
     __tablename__ = "drivers"
@@ -52,13 +67,20 @@ class Driver(Base):
     vehicle_plate = Column(String, unique=True)
     insurance_number = Column(String)
     insurance_expiry = Column(String)
-    status = Column(String, default="available")  # available, busy, offline
+    
+    # Driver-specific approval (NEW)
+    driver_status = Column(SQLEnum(AccountStatus), default=AccountStatus.PENDING)
+    driver_approval_notes = Column(String, nullable=True)
+    driver_approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    driver_approved_at = Column(DateTime, nullable=True)
+    
+    status = Column(String, default="offline")  # available, busy, offline (operational status)
     rating = Column(String, default="5.0")
     total_deliveries = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    user = relationship("User", back_populates="driver_profile")
+    user = relationship("User", back_populates="driver_profile", foreign_keys=[user_id])
     assigned_offers = relationship("Offer", back_populates="assigned_driver")
 
 class Offer(Base):
@@ -66,7 +88,7 @@ class Offer(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     client_id = Column(Integer, ForeignKey("users.id"))
-    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)  # NEW: Link to driver
+    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
     company_representative = Column(String)
     emergency_phone = Column(String)
     description = Column(String)
@@ -86,4 +108,4 @@ class Offer(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     client = relationship("User", back_populates="offers", foreign_keys=[client_id])
-    assigned_driver = relationship("Driver", back_populates="assigned_offers")  
+    assigned_driver = relationship("Driver", back_populates="assigned_offers")

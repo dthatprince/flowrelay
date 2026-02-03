@@ -96,6 +96,25 @@ class API {
         });
     }
 
+
+    // APPROVE USERS ENDPOINT
+    async getPendingUsers() {
+        return this.request('/admin/users/pending', { method: 'GET' });
+    }
+    async getPendingDrivers() {
+        return this.request('/admin/drivers/pending', { method: 'GET' });
+    }
+    async approveUser(userId, approvalData) {
+        return this.request(`/admin/users/${userId}/approve`, {
+            method: 'PUT', body: JSON.stringify(approvalData)
+        });
+    }
+    async approveDriver(driverId, approvalData) {
+        return this.request(`/admin/drivers/${driverId}/approve`, {
+            method: 'PUT', body: JSON.stringify(approvalData)
+        });
+    }
+
     // CLIENT OFFER ENDPOINTS
     async createOffer(offerData) {
         return this.request('/offers', {

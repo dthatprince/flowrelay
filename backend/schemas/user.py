@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from models import UserRole
+from datetime import datetime
+from models import UserRole, AccountStatus
 
 class UserSignup(BaseModel):
     email: EmailStr
@@ -30,6 +31,9 @@ class UserResponse(BaseModel):
     company_representative: Optional[str]
     emergency_phone: Optional[str]
     is_verified: str
+    account_status: AccountStatus  # NEW
+    approval_notes: Optional[str]  # NEW
+    approved_at: Optional[datetime]  # NEW
     
     class Config:
         from_attributes = True
@@ -41,3 +45,8 @@ class UserUpdate(BaseModel):
     phone_number: Optional[str] = None
     company_representative: Optional[str] = None
     emergency_phone: Optional[str] = None
+
+class AccountApproval(BaseModel):
+    """Schema for approving/rejecting user accounts"""
+    status: AccountStatus  # approved, rejected, suspended
+    notes: Optional[str] = None  # Admin notes

@@ -124,9 +124,9 @@
   
   <script>
     // Check if already logged in
-    if (auth.isAuthenticated()) {
-      auth.redirectToDashboard();
-    }
+    //if (auth.isAuthenticated()) {
+    //  auth.redirectToDashboard();
+    //}
 
     // Handle login form submission
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -144,16 +144,33 @@
       
       try {
         const user = await auth.login(email, password);
-        showToast('Login successful!', 'success');
         
-        // Redirect based on role
+        // Check approval status
+        const status = auth.checkApprovalStatus(user);
+        if (status === 'pending') {
+          showToast('Account pending approval. Limited access granted.', 'warning');
+        } else if (status === 'approved') {
+          showToast('Login successful!', 'success');
+        }
+        
         setTimeout(() => {
           auth.redirectToDashboard();
         }, 1000);
         
       } catch (error) {
         hideLoading('loginBtn', 'Sign in');
-        showToast(error.message || 'Login failed. Please check your credentials.', 'error');
+        
+        if (error.message === 'PENDING_APPROVAL') {
+          showToast('Your account is pending admin approval.', 'warning');
+        } else if (error.message === 'ACCOUNT_REJECTED') {
+          showToast('Your account has been rejected. Contact support.', 'error');
+        } else if (error.message === 'ACCOUNT_SUSPENDED') {
+          showToast('Your account has been suspended. Contact support.', 'error');
+        } else if (error.message === 'EMAIL_NOT_VERIFIED') {
+          showToast('Please verify your email first.', 'warning');
+        } else {
+          showToast(error.message || 'Login failed.', 'error');
+        }
       }
     });
   </script>

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
+from models import AccountStatus
 
 class DriverCreate(BaseModel):
     first_name: str
@@ -47,12 +48,20 @@ class DriverResponse(BaseModel):
     insurance_number: str
     insurance_expiry: str
     status: str
+    driver_status: AccountStatus  # NEW - approval status
+    driver_approval_notes: Optional[str]  # NEW
+    driver_approved_at: Optional[datetime]  # NEW
     rating: str
     total_deliveries: int
     created_at: datetime
     
     class Config:
         from_attributes = True
+
+class DriverApproval(BaseModel):
+    """Schema for approving/rejecting driver profiles"""
+    status: AccountStatus  # approved, rejected, suspended
+    notes: Optional[str] = None  # Admin notes
 
 class OfferAcceptance(BaseModel):
     accept: bool

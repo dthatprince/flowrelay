@@ -4,7 +4,7 @@ from typing import List
 from datetime import datetime
 
 from database import get_db
-from models import User, Driver, Offer, OfferStatus, UserRole
+from models import User, Driver, Offer, OfferStatus, UserRole, AccountStatus
 from schemas import (
     DriverCreate, DriverUpdate, DriverResponse, 
     OfferAcceptance, OfferStatusUpdate
@@ -20,6 +20,30 @@ def require_driver(current_user: User = Depends(get_current_user)) -> User:
         raise HTTPException(status_code=403, detail="Driver access required")
     return current_user
 
+# Helper to check if driver profile is approved
+def require_approved_driver(current_user: User = Depends(require_driver), db: Session = Depends(get_db)) -> Driver:
+    driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver profile not found. Please create one.")
+    
+    if driver.driver_status == AccountStatus.PENDING:
+        raise HTTPException(
+            status_code=403,
+            detail="Your driver profile is pending admin approval. Please wait for approval."
+        )
+    elif driver.driver_status == AccountStatus.REJECTED:
+        raise HTTPException(
+            status_code=403,
+            detail="Your driver profile has been rejected. Please contact support."
+        )
+    elif driver.driver_status == AccountStatus.SUSPENDED:
+        raise HTTPException(
+            status_code=403,
+            detail="Your driver profile has been suspended. Please contact support."
+        )
+    
+    return driver
+
 # ===== DRIVER PROFILE MANAGEMENT =====
 
 @router.post("/profile", response_model=DriverResponse)
@@ -28,7 +52,7 @@ def create_driver_profile(
     current_user: User = Depends(require_driver),
     db: Session = Depends(get_db)
 ):
-    """Create driver profile (first time setup)"""
+    """Create driver profile (first time setup) - Will be pending admin approval"""
     # Check if profile already exists
     existing_driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
     if existing_driver:
@@ -42,7 +66,7 @@ def create_driver_profile(
     if db.query(Driver).filter(Driver.vehicle_plate == driver_data.vehicle_plate).first():
         raise HTTPException(status_code=400, detail="Vehicle plate already registered")
     
-    # Create driver profile
+    # Create driver profile with PENDING status
     new_driver = Driver(
         user_id=current_user.id,
         first_name=driver_data.first_name,
@@ -56,7 +80,9 @@ def create_driver_profile(
         vehicle_color=driver_data.vehicle_color,
         vehicle_plate=driver_data.vehicle_plate,
         insurance_number=driver_data.insurance_number,
-        insurance_expiry=driver_data.insurance_expiry
+        insurance_expiry=driver_data.insurance_expiry,
+        driver_status=AccountStatus.PENDING,  # Pending admin approval
+        status="offline"  # Offline until approved
     )
     
     db.add(new_driver)
@@ -70,7 +96,7 @@ def get_driver_profile(
     current_user: User = Depends(require_driver),
     db: Session = Depends(get_db)
 ):
-    """Get driver's profile"""
+    """Get driver's profile (regardless of approval status)"""
     driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
     if not driver:
         raise HTTPException(status_code=404, detail="Driver profile not found. Please create one.")
@@ -83,10 +109,17 @@ def update_driver_profile(
     current_user: User = Depends(require_driver),
     db: Session = Depends(get_db)
 ):
-    """Update driver profile"""
+    """Update driver profile - Only pending/approved drivers can update"""
     driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
     if not driver:
         raise HTTPException(status_code=404, detail="Driver profile not found")
+    
+    # Don't allow updates if rejected or suspended
+    if driver.driver_status in [AccountStatus.REJECTED, AccountStatus.SUSPENDED]:
+        raise HTTPException(
+            status_code=403,
+            detail="Cannot update profile. Profile is rejected or suspended."
+        )
     
     # Check license uniqueness if updating
     if driver_update.license_number and driver_update.license_number != driver.license_number:
@@ -111,14 +144,10 @@ def update_driver_profile(
 @router.put("/status")
 def update_driver_status(
     status: str,
-    current_user: User = Depends(require_driver),
+    driver: Driver = Depends(require_approved_driver),
     db: Session = Depends(get_db)
 ):
-    """Update driver availability status (available, busy, offline)"""
-    driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver profile not found")
-    
+    """Update driver availability status - Only approved drivers can change status"""
     valid_statuses = ["available", "busy", "offline"]
     if status not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
@@ -129,19 +158,14 @@ def update_driver_status(
     
     return {"message": f"Status updated to {status}"}
 
-# ===== OFFER MANAGEMENT =====
+# ===== OFFER MANAGEMENT (Only approved drivers) =====
 
 @router.get("/offers/available", response_model=List[OfferResponse])
 def get_available_offers(
-    current_user: User = Depends(require_driver),
+    driver: Driver = Depends(require_approved_driver),
     db: Session = Depends(get_db)
 ):
-    """Get all available offers (pending status, no driver assigned)"""
-    driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver profile not found")
-    
-    # Get offers that are pending and not assigned to any driver
+    """Get all available offers - Only approved drivers can see offers"""
     offers = db.query(Offer).filter(
         Offer.status == OfferStatus.PENDING,
         Offer.driver_id == None
@@ -151,28 +175,19 @@ def get_available_offers(
 
 @router.get("/offers/my-assignments", response_model=List[OfferResponse])
 def get_my_assignments(
-    current_user: User = Depends(require_driver),
+    driver: Driver = Depends(require_approved_driver),
     db: Session = Depends(get_db)
 ):
     """Get all offers assigned to this driver"""
-    driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver profile not found")
-    
     offers = db.query(Offer).filter(Offer.driver_id == driver.id).all()
-    
     return offers
 
 @router.get("/offers/active", response_model=List[OfferResponse])
 def get_active_offers(
-    current_user: User = Depends(require_driver),
+    driver: Driver = Depends(require_approved_driver),
     db: Session = Depends(get_db)
 ):
     """Get driver's active offers (matched or in_progress)"""
-    driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver profile not found")
-    
     offers = db.query(Offer).filter(
         Offer.driver_id == driver.id,
         Offer.status.in_([OfferStatus.MATCHED, OfferStatus.IN_PROGRESS])
@@ -196,14 +211,10 @@ def get_offer_details(
 @router.post("/offers/{offer_id}/accept")
 def accept_offer(
     offer_id: int,
-    current_user: User = Depends(require_driver),
+    driver: Driver = Depends(require_approved_driver),
     db: Session = Depends(get_db)
 ):
-    """Accept an available offer"""
-    driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver profile not found")
-    
+    """Accept an available offer - Only approved drivers can accept"""
     # Check if driver is available
     if driver.status != "available":
         raise HTTPException(status_code=400, detail="Driver must be available to accept offers")
@@ -243,14 +254,10 @@ def accept_offer(
 def update_offer_status(
     offer_id: int,
     status_update: OfferStatusUpdate,
-    current_user: User = Depends(require_driver),
+    driver: Driver = Depends(require_approved_driver),
     db: Session = Depends(get_db)
 ):
-    """Update offer status (start delivery, complete, cancel)"""
-    driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver profile not found")
-    
+    """Update offer status - Only approved drivers can update"""
     # Get offer
     offer = db.query(Offer).filter(
         Offer.id == offer_id,
@@ -299,14 +306,10 @@ def update_offer_status(
 
 @router.get("/statistics")
 def get_driver_statistics(
-    current_user: User = Depends(require_driver),
+    driver: Driver = Depends(require_approved_driver),
     db: Session = Depends(get_db)
 ):
-    """Get driver statistics"""
-    driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver profile not found")
-    
+    """Get driver statistics - Only approved drivers"""
     # Count offers by status
     total_assigned = db.query(Offer).filter(Offer.driver_id == driver.id).count()
     completed = db.query(Offer).filter(
@@ -330,6 +333,7 @@ def get_driver_statistics(
         "driver_info": {
             "name": f"{driver.first_name} {driver.last_name}",
             "status": driver.status,
+            "driver_status": driver.driver_status,
             "rating": driver.rating,
             "total_deliveries": driver.total_deliveries
         },
@@ -345,14 +349,10 @@ def get_driver_statistics(
 @router.get("/history", response_model=List[OfferResponse])
 def get_delivery_history(
     limit: int = 50,
-    current_user: User = Depends(require_driver),
+    driver: Driver = Depends(require_approved_driver),
     db: Session = Depends(get_db)
 ):
-    """Get driver's delivery history (completed and cancelled)"""
-    driver = db.query(Driver).filter(Driver.user_id == current_user.id).first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver profile not found")
-    
+    """Get driver's delivery history - Only approved drivers"""
     offers = db.query(Offer).filter(
         Offer.driver_id == driver.id,
         Offer.status.in_([OfferStatus.COMPLETED, OfferStatus.CANCELLED])

@@ -227,6 +227,7 @@
       </div>
     </div>
   </main>
+  <div id="approval-status-banner"></div>
 
   <script src="../assets/js/core/popper.min.js"></script>
   <script src="../assets/js/core/bootstrap.min.js"></script>
@@ -308,6 +309,31 @@
 
     // Load dashboard on page load
     loadDashboard();
+  </script>
+  <script>
+    // Check and display approval status
+    const user = auth.getUser();
+    if (user) {
+      const status = auth.checkApprovalStatus(user);
+      if (status === 'pending') {
+        auth.showApprovalMessage(
+          'Your account is pending admin approval. You can view offers but cannot create new ones until approved.',
+          'warning'
+        );
+        // Disable create offer button
+        const createBtn = document.querySelector('a[href="create-offer.html"]');
+        if (createBtn) {
+          createBtn.style.pointerEvents = 'none';
+          createBtn.style.opacity = '0.5';
+          createBtn.title = 'Account must be approved to create offers';
+        }
+      } else if (status !== 'approved') {
+        auth.showApprovalMessage(
+          'Your account status: ' + status + '. Please contact support.',
+          'danger'
+        );
+      }
+    }
   </script>
 </body>
 
