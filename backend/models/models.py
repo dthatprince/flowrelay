@@ -48,7 +48,12 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     offers = relationship("Offer", back_populates="client", foreign_keys="Offer.client_id")
-    driver_profile = relationship("Driver", back_populates="user", uselist=False)
+    driver_profile = relationship(
+        "Driver", 
+        back_populates="user", 
+        uselist=False,
+        foreign_keys="Driver.user_id"  # Add this line!
+    )
 
 class Driver(Base):
     __tablename__ = "drivers"
