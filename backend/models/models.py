@@ -17,10 +17,10 @@ class OfferStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 class AccountStatus(str, enum.Enum):
-    PENDING = "pending"  # Email verified but waiting admin approval
-    APPROVED = "approved"  # Admin approved, can use system
-    REJECTED = "rejected"  # Admin rejected
-    SUSPENDED = "suspended"  # Admin suspended account
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    SUSPENDED = "suspended"
 
 class User(Base):
     __tablename__ = "users"
@@ -34,25 +34,25 @@ class User(Base):
     phone_number = Column(String, nullable=True)
     company_representative = Column(String, nullable=True)
     emergency_phone = Column(String, nullable=True)
-    
-    # Email verification (existing)
     is_verified = Column(String, default="false")
     verification_token = Column(String, nullable=True)
     
-    # Account approval (NEW)
+    # Account approval fields
     account_status = Column(SQLEnum(AccountStatus), default=AccountStatus.PENDING)
-    approval_notes = Column(String, nullable=True)  # Admin can add notes
-    approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Which admin approved
+    approval_notes = Column(String, nullable=True)
+    approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     approved_at = Column(DateTime, nullable=True)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     
+    # Relationships
     offers = relationship("Offer", back_populates="client", foreign_keys="Offer.client_id")
+    # FIX: Specify which foreign key to use for driver_profile relationship
     driver_profile = relationship(
         "Driver", 
         back_populates="user", 
         uselist=False,
-        foreign_keys="Driver.user_id"  # Add this line!
+        foreign_keys="Driver.user_id"  # THIS IS THE FIX
     )
 
 class Driver(Base):
@@ -73,19 +73,24 @@ class Driver(Base):
     insurance_number = Column(String)
     insurance_expiry = Column(String)
     
-    # Driver-specific approval (NEW)
+    # Driver-specific approval
     driver_status = Column(SQLEnum(AccountStatus), default=AccountStatus.PENDING)
     driver_approval_notes = Column(String, nullable=True)
     driver_approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     driver_approved_at = Column(DateTime, nullable=True)
     
-    status = Column(String, default="offline")  # available, busy, offline (operational status)
+    status = Column(String, default="available")  # available, busy, offline
     rating = Column(String, default="5.0")
     total_deliveries = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    user = relationship("User", back_populates="driver_profile", foreign_keys=[user_id])
+    # Relationships - FIX: Specify foreign_keys
+    user = relationship(
+        "User", 
+        back_populates="driver_profile", 
+        foreign_keys=[user_id]  # THIS IS THE FIX
+    )
     assigned_offers = relationship("Offer", back_populates="assigned_driver")
 
 class Offer(Base):
