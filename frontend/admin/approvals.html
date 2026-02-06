@@ -1,224 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Approvals - Flow Relay Admin</title>
-    <link rel="stylesheet" href="assets/css/soft-ui-dashboard.min.css">
-    <link rel="stylesheet" href="assets/css/custom.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/approval-system.css">
-    <style>
-        .approval-list {
-            display: grid;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .approval-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-left: 4px solid #5e72e4;
-        }
-        
-        .driver-card {
-            border-left-color: #11cdef;
-        }
-        
-        .approval-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #f8f9fa;
-        }
-        
-        .approval-header h3 {
-            margin: 0;
-            font-size: 1.25rem;
-            color: #32325d;
-        }
-        
-        .approval-details {
-            margin: 16px 0;
-        }
-        
-        .approval-details p {
-            margin: 8px 0;
-            color: #525f7f;
-        }
-        
-        .driver-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .details-section h4 {
-            font-size: 1rem;
-            color: #5e72e4;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #e9ecef;
-            padding-bottom: 8px;
-        }
-        
-        .approval-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 2px solid #f8f9fa;
-        }
-        
-        .approval-actions .btn {
-            flex: 1;
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
-            border-bottom: 2px solid #e9ecef;
-        }
-        
-        .tab-btn {
-            padding: 12px 24px;
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            color: #8898aa;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .tab-btn:hover {
-            color: #5e72e4;
-        }
-        
-        .tab-btn.active {
-            color: #5e72e4;
-            border-bottom-color: #5e72e4;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #8898aa;
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 16px;
-            color: #e9ecef;
-        }
-        
-        .loading, .error-state {
-            text-align: center;
-            padding: 40px;
-            color: #8898aa;
-        }
-        
-        .loading i {
-            font-size: 2rem;
-            color: #5e72e4;
-        }
-        
-        .error-state {
-            color: #f5365c;
-        }
-        
-        .data-table {
-            width: 100%;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .data-table th {
-            background: #f8f9fa;
-            padding: 16px;
-            text-align: left;
-            font-weight: 600;
-            color: #32325d;
-            border-bottom: 2px solid #e9ecef;
-        }
-        
-        .data-table td {
-            padding: 16px;
-            border-bottom: 1px solid #f8f9fa;
-            color: #525f7f;
-        }
-        
-        .data-table tbody tr:hover {
-            background: #f8f9fa;
-        }
-        
-        .badge {
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        
-        .badge-primary { background: #5e72e4; color: white; }
-        .badge-success { background: #2dce89; color: white; }
-        .badge-warning { background: #fb6340; color: white; }
-        .badge-danger { background: #f5365c; color: white; }
-        .badge-info { background: #11cdef; color: white; }
-        .badge-secondary { background: #8898aa; color: white; }
-        
-        .approval-banner {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            padding: 16px;
-            text-align: center;
-            font-weight: 600;
-        }
-        
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border-left: 4px solid #ffc107;
-        }
-        
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            padding: 16px 24px;
-            border-radius: 8px;
-            background: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 9999;
-        }
-        
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .toast-success { border-left: 4px solid #2dce89; }
-        .toast-error { border-left: 4px solid #f5365c; }
-        .toast-info { border-left: 4px solid #5e72e4; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Approvals - Flow Relay Admin</title>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link id="pagestyle" href="../assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+  <link href="../assets/css/custom.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/approval-system.css">
+<style>
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .approval-list {
+        display: grid;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .approval-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #5e72e4;
+    }
+
+    .driver-card {
+        border-left-color: #11cdef;
+    }
+
+    .approval-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+
+    .approval-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #32325d;
+    }
+
+    .approval-details {
+        margin: 16px 0;
+    }
+
+    .approval-details p {
+        margin: 8px 0;
+        color: #525f7f;
+    }
+
+    .driver-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .details-section h4 {
+        font-size: 1rem;
+        color: #5e72e4;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 8px;
+    }
+
+    .approval-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 2px solid #f8f9fa;
+    }
+
+    .approval-actions .btn {
+        flex: 1;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .tab-btn {
+        padding: 12px 24px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #8898aa;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .tab-btn:hover {
+        color: #5e72e4;
+    }
+
+    .tab-btn.active {
+        color: #5e72e4;
+        border-bottom-color: #5e72e4;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #8898aa;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        color: #e9ecef;
+    }
+
+    .loading,
+    .error-state {
+        text-align: center;
+        padding: 40px;
+        color: #8898aa;
+    }
+
+    .loading i {
+        font-size: 2rem;
+        color: #5e72e4;
+    }
+
+    .error-state {
+        color: #f5365c;
+    }
+
+    .data-table {
+        width: 100%;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .data-table th {
+        background: #f8f9fa;
+        padding: 16px;
+        text-align: left;
+        font-weight: 600;
+        color: #32325d;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .data-table td {
+        padding: 16px;
+        border-bottom: 1px solid #f8f9fa;
+        color: #525f7f;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge {
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-primary {
+        background: #5e72e4;
+        color: white;
+    }
+
+    .badge-success {
+        background: #2dce89;
+        color: white;
+    }
+
+    .badge-warning {
+        background: #fb6340;
+        color: white;
+    }
+
+    .badge-danger {
+        background: #f5365c;
+        color: white;
+    }
+
+    .badge-info {
+        background: #11cdef;
+        color: white;
+    }
+
+    .badge-secondary {
+        background: #8898aa;
+        color: white;
+    }
+
+    .approval-banner {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        padding: 16px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .alert-warning {
+        background: #fff3cd;
+        color: #856404;
+        border-left: 4px solid #ffc107;
+    }
+
+    .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        padding: 16px 24px;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s;
+        z-index: 9999;
+    }
+
+    .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .toast-success {
+        border-left: 4px solid #2dce89;
+    }
+
+    .toast-error {
+        border-left: 4px solid #f5365c;
+    }
+
+    .toast-info {
+        border-left: 4px solid #5e72e4;
+    }
+</style>
 </head>
 <body class="g-sidenav-show bg-gray-100">
     <!-- Sidebar -->
@@ -230,7 +270,7 @@
         <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="admin-dashboard.html">
+                    <a class="nav-link" href="dashboard.html">
                         <i class="fas fa-tachometer-alt text-primary"></i>
                         <span class="nav-link-text ms-1">Dashboard</span>
                     </a>
