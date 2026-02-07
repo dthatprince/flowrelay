@@ -1,416 +1,387 @@
-// driver-dashboard.js - Driver Dashboard with Approval Status
+// driver-dashboard.js
+// Driver Dashboard with Profile Status and Approval Handling
 
-document.addEventListener('DOMContentLoaded', async function() {
-    // Require driver auth
-    const driver = await auth.requireAuth();
-    if (!driver || driver.role !== 'driver') {
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    // Display user info
-    displayUserInfo(driver);
-    
-    // Check if driver has a profile
-    await checkDriverProfile(driver);
-    
-    // Load driver data if approved
-    if (driver.account_status === 'approved') {
-        await loadDriverData();
-    }
+let driverProfile = null;
+let driverStatus = {
+  hasProfile: false,
+  profileStatus: 'none', // none, pending, approved, rejected, suspended
+  canAcceptOffers: false
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check authentication
+  if (!auth.isAuthenticated() || auth.getUser().role !== 'driver') {
+    window.location.href = '../index.html';
+    return;
+  }
+
+  await loadDashboard();
 });
 
-function displayUserInfo(user) {
-    const userInfoEl = document.getElementById('user-info');
-    if (userInfoEl) {
-        userInfoEl.innerHTML = `
-            <p><strong>Email:</strong> ${user.email}</p>
-            <p><strong>Account Status:</strong> ${auth.displayAccountStatusBadge(user.account_status, user.approval_notes)}</p>
-        `;
-    }
-}
+/* ================== MAIN DASHBOARD LOADER ================== */
 
-async function checkDriverProfile(user) {
-    const profileSection = document.getElementById('driver-profile-section');
-    const actionsSection = document.getElementById('driver-actions-section');
-    
-    try {
-        const profile = await auth.apiRequest('/driver/profile');
-        
-        // Check for profile approval status
-        if (profile.driver_status === 'pending') {
-            showProfilePendingMessage();
-            displayDriverProfile(profile, true);
-            if (actionsSection) actionsSection.style.display = 'none';
-        } else if (profile.driver_status === 'approved') {
-            hideApprovalMessages();
-            displayDriverProfile(profile, false);
-            if (actionsSection) actionsSection.style.display = 'block';
-        } else if (profile.driver_status === 'rejected') {
-            showProfileRejectedMessage(profile.driver_approval_notes);
-            displayDriverProfile(profile, true);
-            if (actionsSection) actionsSection.style.display = 'none';
-        } else if (profile.driver_status === 'suspended') {
-            showProfileSuspendedMessage(profile.driver_approval_notes);
-            displayDriverProfile(profile, true);
-            if (actionsSection) actionsSection.style.display = 'none';
-        }
-        
-    } catch (error) {
-        if (error.message.includes('not found')) {
-            // No profile yet - show create profile form
-            showCreateProfileForm();
-            if (actionsSection) actionsSection.style.display = 'none';
-        } else {
-            console.error('Error loading profile:', error);
-        }
-    }
-}
+async function loadDashboard() {
+  try {
+    // Step 1: Check if driver profile exists
+    await checkDriverProfile();
 
-function showProfilePendingMessage() {
-    const message = `
-        <div class="alert alert-warning" style="margin: 20px 0;">
-            <i class="fas fa-clock"></i>
-            <strong>Driver Profile Pending Approval</strong><br>
-            Your driver profile is under review by our admin team. You will be notified once approved.
-            You can view your profile details below, but cannot accept deliveries until approved.
-        </div>
-    `;
-    showApprovalMessage(message);
-}
+    // Step 2: Show appropriate alerts based on status
+    showStatusAlerts();
 
-function showProfileRejectedMessage(notes) {
-    const message = `
-        <div class="alert alert-danger" style="margin: 20px 0;">
-            <i class="fas fa-times-circle"></i>
-            <strong>Driver Profile Rejected</strong><br>
-            Your driver profile was not approved.
-            ${notes ? `<br><strong>Reason:</strong> ${notes}` : ''}
-            <br>Please contact support for more information.
-        </div>
-    `;
-    showApprovalMessage(message);
-}
-
-function showProfileSuspendedMessage(notes) {
-    const message = `
-        <div class="alert alert-danger" style="margin: 20px 0;">
-            <i class="fas fa-ban"></i>
-            <strong>Driver Profile Suspended</strong><br>
-            Your driver profile has been temporarily suspended.
-            ${notes ? `<br><strong>Reason:</strong> ${notes}` : ''}
-            <br>Please contact support for assistance.
-        </div>
-    `;
-    showApprovalMessage(message);
-}
-
-function showAccountPendingMessage() {
-    const message = `
-        <div class="alert alert-warning" style="margin: 20px 0;">
-            <i class="fas fa-clock"></i>
-            <strong>Account Pending Approval</strong><br>
-            Your account is awaiting admin approval. Some features are restricted until your account is approved.
-        </div>
-    `;
-    showApprovalMessage(message);
-}
-
-function showApprovalMessage(html) {
-    const container = document.getElementById('approval-message-container');
-    if (container) {
-        container.innerHTML = html;
-        container.style.display = 'block';
+    // Step 3: Load data based on profile status
+    if (driverStatus.hasProfile) {
+      await loadDriverData();
     } else {
-        // Create container if doesn't exist
-        const div = document.createElement('div');
-        div.id = 'approval-message-container';
-        div.innerHTML = html;
-        document.querySelector('.container-fluid')?.prepend(div);
+      showNoProfileState();
     }
+
+    // Step 4: Setup quick actions based on status
+    setupQuickActions();
+
+  } catch (error) {
+    console.error('Error loading dashboard:', error);
+    showToast('Failed to load dashboard', 'error');
+  }
 }
 
-function hideApprovalMessages() {
-    const container = document.getElementById('approval-message-container');
-    if (container) {
-        container.style.display = 'none';
+/* ================== PROFILE STATUS CHECK ================== */
+
+async function checkDriverProfile() {
+  try {
+    driverProfile = await api.getDriverProfile();
+    driverStatus.hasProfile = true;
+    driverStatus.profileStatus = driverProfile.driver_status || 'pending';
+    
+    // Only approved drivers can accept offers
+    driverStatus.canAcceptOffers = (driverStatus.profileStatus === 'approved');
+    
+    updateDriverInfo(driverProfile);
+  } catch (error) {
+    // Profile doesn't exist
+    driverStatus.hasProfile = false;
+    driverStatus.profileStatus = 'none';
+    driverStatus.canAcceptOffers = false;
+  }
+}
+
+/* ================== STATUS ALERTS ================== */
+
+function showStatusAlerts() {
+  const alertsContainer = document.getElementById('alertsContainer');
+  alertsContainer.innerHTML = '';
+
+  if (!driverStatus.hasProfile) {
+    // No profile created yet
+    alertsContainer.innerHTML = `
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Profile Required!</strong> Please create your driver profile to start your journey with us.
+        <a href="profile.html" class="alert-link ms-2">Create Profile Now</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    `;
+  } else if (driverStatus.profileStatus === 'pending') {
+    // Profile pending approval
+    alertsContainer.innerHTML = `
+      <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="fas fa-clock me-2"></i>
+        <strong>Pending Approval</strong> Your driver profile is under review by our admin team. 
+        You'll be able to accept offers once approved.
+        ${driverProfile.driver_approval_notes ? `<br><small>Note: ${driverProfile.driver_approval_notes}</small>` : ''}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    `;
+  } else if (driverStatus.profileStatus === 'rejected') {
+    // Profile rejected
+    alertsContainer.innerHTML = `
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-times-circle me-2"></i>
+        <strong>Profile Rejected</strong> Unfortunately, your driver profile was not approved.
+        ${driverProfile.driver_approval_notes ? `<br><strong>Reason:</strong> ${driverProfile.driver_approval_notes}` : ''}
+        <br>Please contact support for more information or update your profile.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    `;
+  } else if (driverStatus.profileStatus === 'suspended') {
+    // Profile suspended
+    alertsContainer.innerHTML = `
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-ban me-2"></i>
+        <strong>Account Suspended</strong> Your driver profile has been suspended.
+        ${driverProfile.driver_approval_notes ? `<br><strong>Reason:</strong> ${driverProfile.driver_approval_notes}` : ''}
+        <br>Please contact support for assistance.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    `;
+  } else if (driverStatus.profileStatus === 'approved') {
+    // Approved - show welcome message only once
+    const welcomeShown = sessionStorage.getItem('welcomeShown');
+    if (!welcomeShown) {
+      alertsContainer.innerHTML = `
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-check-circle me-2"></i>
+          <strong>Welcome!</strong> Your driver profile is approved. You can now accept delivery offers!
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `;
+      sessionStorage.setItem('welcomeShown', 'true');
     }
+  }
 }
 
-function displayDriverProfile(profile, readonly = false) {
-    const profileContainer = document.getElementById('driver-profile-container');
-    if (!profileContainer) return;
-    
-    profileContainer.innerHTML = `
-        <div class="card">
-            <div class="card-header">
-                <h6>Driver Profile ${auth.displayAccountStatusBadge(profile.driver_status, profile.driver_approval_notes)}</h6>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="text-uppercase text-muted mb-3">Personal Information</h6>
-                        <p><strong>Name:</strong> ${profile.first_name} ${profile.last_name}</p>
-                        <p><strong>Phone:</strong> ${profile.phone_number}</p>
-                        <p><strong>License #:</strong> ${profile.license_number}</p>
-                        <p><strong>License Expiry:</strong> ${profile.license_expiry}</p>
-                        <p><strong>Insurance #:</strong> ${profile.insurance_number}</p>
-                        <p><strong>Insurance Expiry:</strong> ${profile.insurance_expiry}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-uppercase text-muted mb-3">Vehicle Information</h6>
-                        <p><strong>Make/Model:</strong> ${profile.vehicle_make} ${profile.vehicle_model}</p>
-                        <p><strong>Year:</strong> ${profile.vehicle_year}</p>
-                        <p><strong>Color:</strong> ${profile.vehicle_color}</p>
-                        <p><strong>Plate:</strong> ${profile.vehicle_plate}</p>
-                        <p><strong>Status:</strong> <span class="badge badge-${profile.status === 'available' ? 'success' : profile.status === 'busy' ? 'warning' : 'secondary'}">${profile.status}</span></p>
-                        <p><strong>Total Deliveries:</strong> ${profile.total_deliveries}</p>
-                        <p><strong>Rating:</strong> ⭐ ${profile.rating}</p>
-                    </div>
-                </div>
-                ${!readonly && profile.driver_status === 'approved' ? `
-                    <div class="mt-3">
-                        <button class="btn btn-primary" onclick="showEditProfileModal()">
-                            <i class="fas fa-edit"></i> Edit Profile
-                        </button>
-                    </div>
-                ` : ''}
-            </div>
-        </div>
-    `;
-}
-
-function showCreateProfileForm() {
-    const profileContainer = document.getElementById('driver-profile-container');
-    if (!profileContainer) return;
-    
-    profileContainer.innerHTML = `
-        <div class="card">
-            <div class="card-header">
-                <h6>Create Driver Profile</h6>
-                <p class="text-sm">Complete your driver profile to start accepting deliveries</p>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    Your profile will be reviewed by an administrator before you can start accepting deliveries.
-                </div>
-                <form id="createProfileForm">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-uppercase text-muted mb-3">Personal Information</h6>
-                            <div class="form-group">
-                                <label>First Name *</label>
-                                <input type="text" class="form-control" name="first_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Last Name *</label>
-                                <input type="text" class="form-control" name="last_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Phone Number *</label>
-                                <input type="tel" class="form-control" name="phone_number" required>
-                            </div>
-                            <div class="form-group">
-                                <label>License Number *</label>
-                                <input type="text" class="form-control" name="license_number" required>
-                            </div>
-                            <div class="form-group">
-                                <label>License Expiry Date *</label>
-                                <input type="date" class="form-control" name="license_expiry" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Insurance Number *</label>
-                                <input type="text" class="form-control" name="insurance_number" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Insurance Expiry Date *</label>
-                                <input type="date" class="form-control" name="insurance_expiry" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-uppercase text-muted mb-3">Vehicle Information</h6>
-                            <div class="form-group">
-                                <label>Vehicle Make *</label>
-                                <input type="text" class="form-control" name="vehicle_make" placeholder="e.g., Toyota" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Vehicle Model *</label>
-                                <input type="text" class="form-control" name="vehicle_model" placeholder="e.g., Camry" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Vehicle Year *</label>
-                                <input type="number" class="form-control" name="vehicle_year" min="1990" max="2026" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Vehicle Color *</label>
-                                <input type="text" class="form-control" name="vehicle_color" placeholder="e.g., Silver" required>
-                            </div>
-                            <div class="form-group">
-                                <label>License Plate *</label>
-                                <input type="text" class="form-control" name="vehicle_plate" placeholder="e.g., ABC123" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Create Profile
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    `;
-    
-    // Handle form submission
-    document.getElementById('createProfileForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        const profileData = Object.fromEntries(formData.entries());
-        
-        try {
-            const profile = await auth.apiRequest('/driver/profile', {
-                method: 'POST',
-                body: JSON.stringify(profileData)
-            });
-            
-            alert('Profile created successfully! Your profile is now pending admin approval.');
-            location.reload();
-            
-        } catch (error) {
-            alert('Failed to create profile: ' + error.message);
-        }
-    });
-}
+/* ================== LOAD DRIVER DATA ================== */
 
 async function loadDriverData() {
-    // Load available offers
-    try {
-        const offers = await auth.apiRequest('/driver/offers/available');
-        displayAvailableOffers(offers);
-    } catch (error) {
-        console.error('Error loading offers:', error);
+  try {
+    // Only approved drivers can see statistics and active offers
+    if (driverStatus.canAcceptOffers) {
+      const stats = await api.getDriverStatistics();
+      updateStatistics(stats);
+
+      const activeOffers = await api.getDriverActiveOffers();
+      displayActiveDeliveries(activeOffers);
+
+      // Show status toggle for approved drivers
+      document.getElementById('statusToggleContainer').style.display = 'block';
+      setupStatusToggle();
+    } else {
+      // Show limited data for pending/rejected/suspended drivers
+      showLimitedStatistics();
+      showLimitedDeliveries();
     }
-    
-    // Load active deliveries
-    try {
-        const activeOffers = await auth.apiRequest('/driver/offers/active');
-        displayActiveDeliveries(activeOffers);
-    } catch (error) {
-        console.error('Error loading active deliveries:', error);
-    }
-    
-    // Load statistics
-    try {
-        const stats = await auth.apiRequest('/driver/statistics');
-        displayStatistics(stats);
-    } catch (error) {
-        console.error('Error loading statistics:', error);
-    }
+  } catch (error) {
+    console.error('Error loading driver data:', error);
+    showToast('Failed to load driver data', 'error');
+  }
 }
 
-function displayAvailableOffers(offers) {
-    const container = document.getElementById('available-offers-container');
-    if (!container) return;
-    
-    if (offers.length === 0) {
-        container.innerHTML = '<p class="text-muted">No available offers at the moment</p>';
-        return;
-    }
-    
-    let html = '<div class="row">';
-    offers.forEach(offer => {
-        html += `
-            <div class="col-md-6 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h6>${offer.description}</h6>
-                        <p class="text-sm"><strong>Pickup:</strong> ${offer.pickup_address}</p>
-                        <p class="text-sm"><strong>Dropoff:</strong> ${offer.dropoff_address}</p>
-                        <p class="text-sm"><strong>Date/Time:</strong> ${offer.pickup_date} at ${offer.pickup_time}</p>
-                        <button class="btn btn-sm btn-success" onclick="acceptOffer(${offer.id})">
-                            <i class="fas fa-check"></i> Accept
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    html += '</div>';
-    container.innerHTML = html;
+/* ================== UPDATE DRIVER INFO ================== */
+
+function updateDriverInfo(profile) {
+  document.getElementById('driverName').textContent = `${profile.first_name} ${profile.last_name}`;
+  document.getElementById('vehicleInfo').textContent = `${profile.vehicle_color} ${profile.vehicle_make} ${profile.vehicle_model}`;
+  document.getElementById('vehiclePlate').textContent = profile.vehicle_plate;
+  
+  // Profile status badge
+  const profileStatusBadge = document.getElementById('profileStatus');
+  const statusConfig = {
+    'pending': { class: 'warning', text: 'Pending Approval' },
+    'approved': { class: 'success', text: 'Approved' },
+    'rejected': { class: 'danger', text: 'Rejected' },
+    'suspended': { class: 'danger', text: 'Suspended' }
+  };
+  const config = statusConfig[profile.driver_status] || statusConfig['pending'];
+  profileStatusBadge.className = `badge badge-sm bg-gradient-${config.class}`;
+  profileStatusBadge.textContent = config.text;
+  
+  // Availability status badge (only for approved drivers)
+  const statusBadge = document.getElementById('driverStatus');
+  if (profile.driver_status === 'approved') {
+    const availabilityConfig = {
+      'available': { class: 'success', text: 'Available' },
+      'busy': { class: 'warning', text: 'Busy' },
+      'offline': { class: 'secondary', text: 'Offline' }
+    };
+    const avConfig = availabilityConfig[profile.status] || availabilityConfig['offline'];
+    statusBadge.className = `badge badge-sm bg-gradient-${avConfig.class}`;
+    statusBadge.textContent = avConfig.text;
+  } else {
+    statusBadge.className = 'badge badge-sm bg-gradient-secondary';
+    statusBadge.textContent = 'Inactive';
+  }
 }
+
+/* ================== UPDATE STATISTICS ================== */
+
+function updateStatistics(stats) {
+  document.getElementById('totalDeliveries').textContent = stats.driver_info.total_deliveries || 0;
+  document.getElementById('activeDeliveries').textContent = (stats.statistics.in_progress + stats.statistics.matched) || 0;
+  document.getElementById('completedDeliveries').textContent = stats.statistics.completed || 0;
+  document.getElementById('driverRating').textContent = stats.driver_info.rating || '5.0';
+}
+
+function showLimitedStatistics() {
+  document.getElementById('totalDeliveries').textContent = '-';
+  document.getElementById('activeDeliveries').textContent = '-';
+  document.getElementById('completedDeliveries').textContent = '-';
+  document.getElementById('driverRating').textContent = '-';
+}
+
+/* ================== DISPLAY DELIVERIES ================== */
 
 function displayActiveDeliveries(offers) {
-    const container = document.getElementById('active-deliveries-container');
-    if (!container) return;
-    
-    if (offers.length === 0) {
-        container.innerHTML = '<p class="text-muted">No active deliveries</p>';
-        return;
-    }
-    
-    // Implementation for active deliveries
-    // Similar to available offers but with different actions
+  const tbody = document.getElementById('activeDeliveriesTable');
+  
+  if (!offers || offers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No active deliveries</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = offers.map(offer => `
+    <tr>
+      <td>
+        <p class="text-xs font-weight-bold mb-0">#${offer.id}</p>
+        <p class="text-xs text-secondary mb-0">${truncate(offer.description, 30)}</p>
+      </td>
+      <td>
+        <p class="text-xs font-weight-bold mb-0">From: ${truncate(offer.pickup_address, 25)}</p>
+        <p class="text-xs text-secondary mb-0">To: ${truncate(offer.dropoff_address, 25)}</p>
+      </td>
+      <td class="align-middle text-center">
+        <p class="text-xs font-weight-bold mb-0">${offer.pickup_date}</p>
+        <p class="text-xs text-secondary mb-0">${offer.pickup_time}</p>
+      </td>
+      <td class="align-middle text-center">
+        <span class="badge badge-sm bg-gradient-${getStatusBadge(offer.status)}">${getStatusDisplay(offer.status)}</span>
+      </td>
+      <td class="align-middle">
+        <a href="my-deliveries.html?id=${offer.id}" class="btn btn-link text-primary mb-0">
+          <i class="fas fa-eye text-xs"></i>
+        </a>
+      </td>
+    </tr>
+  `).join('');
 }
 
-function displayStatistics(stats) {
-    const container = document.getElementById('statistics-container');
-    if (!container) return;
-    
+function showLimitedDeliveries() {
+  const tbody = document.getElementById('activeDeliveriesTable');
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="5" class="text-center py-4">
+        <i class="fas fa-lock text-muted mb-2" style="font-size: 2rem;"></i>
+        <p class="text-sm text-muted">Available after profile approval</p>
+      </td>
+    </tr>
+  `;
+}
+
+/* ================== NO PROFILE STATE ================== */
+
+function showNoProfileState() {
+  showLimitedStatistics();
+  
+  const tbody = document.getElementById('activeDeliveriesTable');
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="5" class="text-center py-4">
+        <i class="fas fa-user-plus text-muted mb-2" style="font-size: 2rem;"></i>
+        <p class="text-sm text-muted">Create your driver profile to get started</p>
+        <a href="profile.html" class="btn btn-sm btn-primary mt-2">Create Profile</a>
+      </td>
+    </tr>
+  `;
+
+  // Hide driver info
+  document.getElementById('driverName').textContent = '-';
+  document.getElementById('vehicleInfo').textContent = '-';
+  document.getElementById('vehiclePlate').textContent = '-';
+  document.getElementById('profileStatus').textContent = 'Not Created';
+  document.getElementById('profileStatus').className = 'badge badge-sm bg-gradient-secondary';
+  document.getElementById('driverStatus').textContent = '-';
+}
+
+/* ================== QUICK ACTIONS ================== */
+
+function setupQuickActions() {
+  const container = document.getElementById('quickActionsContainer');
+  
+  if (!driverStatus.hasProfile) {
+    // No profile - only show create profile action
     container.innerHTML = `
-        <div class="row">
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h3>${stats.statistics.total_assigned}</h3>
-                        <p class="text-muted mb-0">Total Assigned</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h3>${stats.statistics.completed}</h3>
-                        <p class="text-muted mb-0">Completed</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h3>${stats.statistics.in_progress}</h3>
-                        <p class="text-muted mb-0">In Progress</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h3>${stats.driver_info.rating}</h3>
-                        <p class="text-muted mb-0">Rating</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <a href="profile.html" class="btn btn-primary">
+        <i class="fas fa-user-plus me-2"></i>Create Driver Profile
+      </a>
     `;
+  } else if (driverStatus.profileStatus === 'pending') {
+    // Pending approval
+    container.innerHTML = `
+      <a href="profile.html" class="btn btn-info">
+        <i class="fas fa-user me-2"></i>View Profile
+      </a>
+      <button class="btn btn-outline-secondary" disabled>
+        <i class="fas fa-search me-2"></i>Browse Offers (Pending Approval)
+      </button>
+    `;
+  } else if (driverStatus.profileStatus === 'rejected' || driverStatus.profileStatus === 'suspended') {
+    // Rejected or Suspended
+    container.innerHTML = `
+      <a href="profile.html" class="btn btn-warning">
+        <i class="fas fa-user-edit me-2"></i>Update Profile
+      </a>
+      <button class="btn btn-outline-secondary" disabled>
+        <i class="fas fa-search me-2"></i>Browse Offers (Unavailable)
+      </button>
+    `;
+  } else if (driverStatus.profileStatus === 'approved') {
+    // Approved - full access
+    container.innerHTML = `
+      <a href="available-offers.html" class="btn btn-primary">
+        <i class="fas fa-search me-2"></i>Browse Available Offers
+      </a>
+      <a href="my-deliveries.html" class="btn btn-info">
+        <i class="fas fa-truck me-2"></i>My Deliveries
+      </a>
+      <a href="profile.html" class="btn btn-secondary">
+        <i class="fas fa-user me-2"></i>Update Profile
+      </a>
+      <a href="history.html" class="btn btn-outline-secondary">
+        <i class="fas fa-history me-2"></i>View History
+      </a>
+    `;
+  }
 }
 
-async function acceptOffer(offerId) {
-    if (!confirm('Accept this delivery offer?')) return;
+/* ================== STATUS TOGGLE (Only for Approved Drivers) ================== */
+
+function setupStatusToggle() {
+  const toggle = document.getElementById('statusToggle');
+  const label = document.getElementById('statusLabel');
+
+  if (!driverProfile || driverProfile.driver_status !== 'approved') {
+    return; // Only approved drivers can toggle status
+  }
+
+  // Set initial state
+  if (driverProfile.status === 'available') {
+    toggle.checked = true;
+    label.textContent = 'Available';
+    label.className = 'form-check-label text-success';
+  } else if (driverProfile.status === 'busy') {
+    toggle.checked = true;
+    toggle.disabled = true;
+    label.textContent = 'Busy';
+    label.className = 'form-check-label text-warning';
+  } else {
+    toggle.checked = false;
+    label.textContent = 'Offline';
+    label.className = 'form-check-label text-secondary';
+  }
+
+  // Handle toggle change
+  toggle.addEventListener('change', async (e) => {
+    const newStatus = e.target.checked ? 'available' : 'offline';
     
     try {
-        await auth.apiRequest(`/driver/offers/${offerId}/accept`, {
-            method: 'POST'
-        });
-        
-        alert('Offer accepted successfully!');
-        location.reload();
+      await api.updateDriverStatus(newStatus);
+      
+      if (newStatus === 'available') {
+        label.textContent = 'Available';
+        label.className = 'form-check-label text-success';
+        showToast('Status updated to Available', 'success');
+      } else {
+        label.textContent = 'Offline';
+        label.className = 'form-check-label text-secondary';
+        showToast('Status updated to Offline', 'success');
+      }
+
+      // Update status badge
+      const statusBadge = document.getElementById('driverStatus');
+      statusBadge.textContent = newStatus === 'available' ? 'Available' : 'Offline';
+      statusBadge.className = `badge badge-sm bg-gradient-${newStatus === 'available' ? 'success' : 'secondary'}`;
+
     } catch (error) {
-        if (error.message.includes('pending') || error.message.includes('approved')) {
-            alert('You cannot accept offers until your driver profile is approved by an administrator.');
-        } else {
-            alert('Failed to accept offer: ' + error.message);
-        }
+      e.target.checked = !e.target.checked;
+      showToast('Failed to update status', 'error');
     }
+  });
 }

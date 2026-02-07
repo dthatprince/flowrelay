@@ -13,7 +13,7 @@
 
   <style>
     body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     }
     
     .toast-notification {
@@ -145,11 +145,15 @@
     </nav>
 
     <div class="container-fluid py-4">
+      <!-- Status Alert -->
+      <div id="statusAlert"></div>
+
       <div class="row">
         <div class="col-12">
           <div class="card mb-4">
-            <div class="card-header pb-0">
+            <div class="card-header pb-0 d-flex justify-content-between align-items-center">
               <h6 id="formTitle">Create Driver Profile</h6>
+              <span id="approvalStatusBadge"></span>
             </div>
             <div class="card-body">
               <div id="loadingMessage" class="text-center py-4" style="display: none;">
@@ -283,6 +287,7 @@
     }
 
     let isEditMode = false;
+    let currentProfile = null;
 
     // Try to load existing profile
     async function loadProfile() {
@@ -290,33 +295,104 @@
       document.getElementById('profileForm').style.display = 'none';
 
       try {
-        const profile = await api.getDriverProfile();
+        currentProfile = await api.getDriverProfile();
         
         // Profile exists, fill form
         isEditMode = true;
         document.getElementById('formTitle').textContent = 'Update Driver Profile';
         document.getElementById('submitBtn').textContent = 'Update Profile';
         
-        document.getElementById('firstName').value = profile.first_name;
-        document.getElementById('lastName').value = profile.last_name;
-        document.getElementById('phoneNumber').value = profile.phone_number;
-        document.getElementById('licenseNumber').value = profile.license_number;
-        document.getElementById('licenseExpiry').value = profile.license_expiry;
-        document.getElementById('vehicleMake').value = profile.vehicle_make;
-        document.getElementById('vehicleModel').value = profile.vehicle_model;
-        document.getElementById('vehicleYear').value = profile.vehicle_year;
-        document.getElementById('vehicleColor').value = profile.vehicle_color;
-        document.getElementById('vehiclePlate').value = profile.vehicle_plate;
-        document.getElementById('insuranceNumber').value = profile.insurance_number;
-        document.getElementById('insuranceExpiry').value = profile.insurance_expiry;
+        // Show approval status
+        showApprovalStatus(currentProfile.driver_status, currentProfile.driver_approval_notes);
+        
+        // Fill form
+        document.getElementById('firstName').value = currentProfile.first_name;
+        document.getElementById('lastName').value = currentProfile.last_name;
+        document.getElementById('phoneNumber').value = currentProfile.phone_number;
+        document.getElementById('licenseNumber').value = currentProfile.license_number;
+        document.getElementById('licenseExpiry').value = currentProfile.license_expiry;
+        document.getElementById('vehicleMake').value = currentProfile.vehicle_make;
+        document.getElementById('vehicleModel').value = currentProfile.vehicle_model;
+        document.getElementById('vehicleYear').value = currentProfile.vehicle_year;
+        document.getElementById('vehicleColor').value = currentProfile.vehicle_color;
+        document.getElementById('vehiclePlate').value = currentProfile.vehicle_plate;
+        document.getElementById('insuranceNumber').value = currentProfile.insurance_number;
+        document.getElementById('insuranceExpiry').value = currentProfile.insurance_expiry;
+
+        // Disable form if rejected or suspended
+        if (currentProfile.driver_status === 'rejected' || currentProfile.driver_status === 'suspended') {
+          // Allow editing for rejected/suspended to resubmit
+          document.getElementById('submitBtn').textContent = 'Resubmit Profile';
+        }
 
       } catch (error) {
         // Profile doesn't exist, show create form
         isEditMode = false;
+        showCreateProfileInfo();
       } finally {
         document.getElementById('loadingMessage').style.display = 'none';
         document.getElementById('profileForm').style.display = 'block';
       }
+    }
+
+    function showApprovalStatus(status, notes) {
+      const badge = document.getElementById('approvalStatusBadge');
+      const alert = document.getElementById('statusAlert');
+      
+      const statusConfig = {
+        'pending': {
+          badgeClass: 'warning',
+          badgeText: 'Pending Approval',
+          alertClass: 'info',
+          alertIcon: 'clock',
+          alertText: 'Your profile is pending admin approval. You\'ll be notified once it\'s reviewed.'
+        },
+        'approved': {
+          badgeClass: 'success',
+          badgeText: 'Approved',
+          alertClass: 'success',
+          alertIcon: 'check-circle',
+          alertText: 'Your profile is approved! You can now accept delivery offers.'
+        },
+        'rejected': {
+          badgeClass: 'danger',
+          badgeText: 'Rejected',
+          alertClass: 'danger',
+          alertIcon: 'times-circle',
+          alertText: `Your profile was rejected. ${notes ? 'Reason: ' + notes : 'Please update your information and resubmit.'}`
+        },
+        'suspended': {
+          badgeClass: 'danger',
+          badgeText: 'Suspended',
+          alertClass: 'danger',
+          alertIcon: 'ban',
+          alertText: `Your profile has been suspended. ${notes ? 'Reason: ' + notes : 'Please contact support.'}`
+        }
+      };
+      
+      const config = statusConfig[status] || statusConfig['pending'];
+      
+      badge.innerHTML = `<span class="badge bg-gradient-${config.badgeClass}">${config.badgeText}</span>`;
+      
+      alert.innerHTML = `
+        <div class="alert alert-${config.alertClass} alert-dismissible fade show" role="alert">
+          <i class="fas fa-${config.alertIcon} me-2"></i>
+          <strong>${config.badgeText}:</strong> ${config.alertText}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `;
+    }
+
+    function showCreateProfileInfo() {
+      const alert = document.getElementById('statusAlert');
+      alert.innerHTML = `
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Welcome!</strong> Complete your driver profile to get started. 
+          Your profile will be submitted for admin approval once you save it.
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `;
     }
 
     // Handle form submission
@@ -346,7 +422,7 @@
           showToast('Profile updated successfully!', 'success');
         } else {
           await api.createDriverProfile(profileData);
-          showToast('Profile created successfully!', 'success');
+          showToast('Profile created and submitted for approval!', 'success');
         }
 
         setTimeout(() => {

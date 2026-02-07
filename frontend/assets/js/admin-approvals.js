@@ -1,517 +1,450 @@
-// admin-approvals.js - Admin Dashboard for User and Driver Approvals
+// admin-approvals.js
+// Approval Management for Users and Drivers
 
 let currentTab = 'users';
+let statistics = {
+  pendingUsers: 0,
+  pendingDrivers: 0,
+  approved: 0,
+  rejected: 0
+};
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', async function() {
-    // Check admin auth
-    const admin = await auth.requireAdmin();
-    if (!admin) return;
-    
-    // Display admin info
-    displayAdminInfo(admin);
-    
-    // Load initial data
-    await loadPendingUsers();
-    
-    // Setup tab switching
-    setupTabs();
-    
-    // Setup refresh button
-    document.getElementById('refreshBtn')?.addEventListener('click', refreshCurrentTab);
+document.addEventListener('DOMContentLoaded', async () => {
+  // Require admin authentication
+  if (!auth.requireAdmin()) return;
+
+  // Setup event listeners
+  setupTabs();
+  setupRefreshButton();
+
+  // Initial load
+  await loadStatistics();
+  await loadCurrentTab();
 });
 
-function displayAdminInfo(admin) {
-    const adminInfoEl = document.getElementById('admin-info');
-    if (adminInfoEl) {
-        adminInfoEl.innerHTML = `
-            <p><strong>Logged in as:</strong> ${admin.email}</p>
-            <p><strong>Role:</strong> ${admin.role}</p>
-        `;
-    }
-}
+/* ================== TAB HANDLING ================== */
 
 function setupTabs() {
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tab = this.dataset.tab;
-            switchTab(tab);
-        });
-    });
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
 }
 
-async function switchTab(tab) {
-    currentTab = tab;
-    
-    // Update active tab button
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tab);
+function setupRefreshButton() {
+  const refreshBtn = document.getElementById('refreshBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      await loadStatistics();
+      await loadCurrentTab();
+      showToast('Data refreshed', 'success');
     });
-    
-    // Update active tab content
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.toggle('active', content.dataset.tab === tab);
-    });
-    
-    // Load data for the tab
-    if (tab === 'users') {
-        await loadPendingUsers();
-    } else if (tab === 'drivers') {
-        await loadPendingDrivers();
-    } else if (tab === 'all-users') {
-        await loadAllUsers();
-    } else if (tab === 'all-drivers') {
-        await loadAllDrivers();
-    }
+  }
 }
 
-async function refreshCurrentTab() {
-    await switchTab(currentTab);
+function switchTab(tab) {
+  currentTab = tab;
+
+  // Update button states
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+
+  // Update tab content visibility
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+
+  const activeContent = document.getElementById(tab);
+  if (activeContent) {
+    activeContent.classList.add('active');
+  }
+
+  // Load tab data
+  loadCurrentTab();
 }
 
-// ========== USER APPROVALS ==========
+async function loadCurrentTab() {
+  if (currentTab === 'users') {
+    await loadPendingUsers();
+  } else if (currentTab === 'drivers') {
+    await loadPendingDrivers();
+  }
+}
+
+/* ================== STATISTICS ================== */
+
+async function loadStatistics() {
+  try {
+    // Load all data to calculate statistics
+    const [allUsers, allDrivers] = await Promise.all([
+      api.getAllUsers(),
+      api.getAllDrivers()
+    ]);
+
+    // Calculate statistics
+    statistics.pendingUsers = allUsers.filter(u => 
+      u.account_status === 'pending' && u.is_verified === 'true'
+    ).length;
+    
+    statistics.pendingDrivers = allDrivers.filter(d => 
+      d.driver_status === 'pending'
+    ).length;
+    
+    const approvedUsers = allUsers.filter(u => u.account_status === 'approved').length;
+    const approvedDrivers = allDrivers.filter(d => d.driver_status === 'approved').length;
+    statistics.approved = approvedUsers + approvedDrivers;
+    
+    const rejectedUsers = allUsers.filter(u => 
+      u.account_status === 'rejected' || u.account_status === 'suspended'
+    ).length;
+    const rejectedDrivers = allDrivers.filter(d => 
+      d.driver_status === 'rejected' || d.driver_status === 'suspended'
+    ).length;
+    statistics.rejected = rejectedUsers + rejectedDrivers;
+
+    // Update UI
+    updateStatisticsDisplay();
+  } catch (error) {
+    console.error('Error loading statistics:', error);
+  }
+}
+
+function updateStatisticsDisplay() {
+  const pendingUsersEl = document.getElementById('pendingUsersCount');
+  const pendingDriversEl = document.getElementById('pendingDriversCount');
+  const approvedEl = document.getElementById('approvedCount');
+  const rejectedEl = document.getElementById('rejectedCount');
+
+  if (pendingUsersEl) pendingUsersEl.textContent = statistics.pendingUsers;
+  if (pendingDriversEl) pendingDriversEl.textContent = statistics.pendingDrivers;
+  if (approvedEl) approvedEl.textContent = statistics.approved;
+  if (rejectedEl) rejectedEl.textContent = statistics.rejected;
+}
+
+/* ================== PENDING USERS ================== */
 
 async function loadPendingUsers() {
-    showLoading('pending-users-list');
-    try {
-        const users = await auth.apiRequest('/admin/users/pending');
-        displayPendingUsers(users);
-    } catch (error) {
-        showError('pending-users-list', 'Failed to load pending users');
-        console.error(error);
+  const container = document.getElementById('users');
+  container.innerHTML = loadingState();
+
+  try {
+    const users = await api.getPendingUsers();
+
+    if (!users || users.length === 0) {
+      container.innerHTML = emptyState('No pending user approvals');
+      return;
     }
+
+    container.innerHTML = users.map(user => createUserCard(user)).join('');
+  } catch (error) {
+    console.error('Error loading pending users:', error);
+    container.innerHTML = errorState('Failed to load pending users');
+    showToast('Failed to load pending users', 'error');
+  }
 }
 
-function displayPendingUsers(users) {
-    const container = document.getElementById('pending-users-list');
-    
-    if (users.length === 0) {
-        container.innerHTML = '<div class="empty-state"><p>✅ No pending user approvals</p></div>';
-        return;
-    }
-    
-    let html = '<div class="approval-list">';
-    
-    users.forEach(user => {
-        html += `
-            <div class="approval-card">
-                <div class="approval-header">
-                    <h3>${user.email}</h3>
-                    <span class="badge badge-${user.role === 'client' ? 'primary' : 'info'}">
-                        ${user.role.toUpperCase()}
-                    </span>
-                </div>
-                <div class="approval-details">
-                    <p><strong>Company:</strong> ${user.company_name || 'N/A'}</p>
-                    <p><strong>Representative:</strong> ${user.company_representative || 'N/A'}</p>
-                    <p><strong>Phone:</strong> ${user.phone_number || 'N/A'}</p>
-                    <p><strong>Address:</strong> ${user.address || 'N/A'}</p>
-                    <p><strong>Email Verified:</strong> ${user.is_verified === 'true' ? '✅' : '❌'}</p>
-                    <p><strong>Registered:</strong> ${new Date(user.created_at).toLocaleDateString()}</p>
-                </div>
-                <div class="approval-actions">
-                    <button class="btn btn-success" onclick="approveUser(${user.id})">
-                        <i class="fas fa-check"></i> Approve
-                    </button>
-                    <button class="btn btn-danger" onclick="rejectUser(${user.id})">
-                        <i class="fas fa-times"></i> Reject
-                    </button>
-                    <button class="btn btn-secondary" onclick="suspendUser(${user.id})">
-                        <i class="fas fa-ban"></i> Suspend
-                    </button>
-                </div>
+function createUserCard(user) {
+  const verifiedBadge = user.is_verified === 'true' 
+    ? '<span class="badge badge-sm bg-gradient-success"><i class="fas fa-check"></i> Verified</span>'
+    : '<span class="badge badge-sm bg-gradient-warning"><i class="fas fa-clock"></i> Not Verified</span>';
+
+  const roleBadge = user.role === 'client' 
+    ? '<span class="badge badge-sm bg-gradient-primary">CLIENT</span>'
+    : '<span class="badge badge-sm bg-gradient-info">DRIVER</span>';
+
+  return `
+    <div class="card mb-3">
+      <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+        <div>
+          <h6 class="mb-1">${user.email}</h6>
+          <div class="d-flex gap-2">
+            ${roleBadge}
+            ${verifiedBadge}
+          </div>
+        </div>
+      </div>
+      <div class="card-body pt-3">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="info-row">
+              <span class="info-label">Company:</span>
+              <span class="info-value">${user.company_name || 'N/A'}</span>
             </div>
-        `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
+            <div class="info-row">
+              <span class="info-label">Representative:</span>
+              <span class="info-value">${user.company_representative || 'N/A'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Phone:</span>
+              <span class="info-value">${user.phone_number || 'N/A'}</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="info-row">
+              <span class="info-label">Address:</span>
+              <span class="info-value">${user.address || 'N/A'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Registered:</span>
+              <span class="info-value">${formatDate(user.created_at)}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2 mt-3">
+          <button class="btn btn-sm bg-gradient-success" onclick="approveUser(${user.id})">
+            <i class="fas fa-check me-1"></i> Approve
+          </button>
+          <button class="btn btn-sm bg-gradient-danger" onclick="rejectUser(${user.id})">
+            <i class="fas fa-times me-1"></i> Reject
+          </button>
+          <button class="btn btn-sm btn-outline-warning" onclick="suspendUser(${user.id})">
+            <i class="fas fa-ban me-1"></i> Suspend
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
 }
+
+/* ================== PENDING DRIVERS ================== */
+
+async function loadPendingDrivers() {
+  const container = document.getElementById('drivers');
+  container.innerHTML = loadingState();
+
+  try {
+    const drivers = await api.getPendingDrivers();
+
+    if (!drivers || drivers.length === 0) {
+      container.innerHTML = emptyState('No pending driver approvals');
+      return;
+    }
+
+    container.innerHTML = drivers.map(driver => createDriverCard(driver)).join('');
+  } catch (error) {
+    console.error('Error loading pending drivers:', error);
+    container.innerHTML = errorState('Failed to load pending drivers');
+    showToast('Failed to load pending drivers', 'error');
+  }
+}
+
+function createDriverCard(driver) {
+  return `
+    <div class="card mb-3">
+      <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">${driver.first_name} ${driver.last_name}</h6>
+        <span class="badge bg-gradient-warning">PENDING</span>
+      </div>
+      <div class="card-body pt-3">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-uppercase text-xs text-muted mb-2">Personal Information</h6>
+            <div class="info-row">
+              <span class="info-label">Phone:</span>
+              <span class="info-value">${driver.phone_number}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">License Number:</span>
+              <span class="info-value">${driver.license_number}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">License Expiry:</span>
+              <span class="info-value">${driver.license_expiry}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Insurance Number:</span>
+              <span class="info-value">${driver.insurance_number}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Insurance Expiry:</span>
+              <span class="info-value">${driver.insurance_expiry}</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-uppercase text-xs text-muted mb-2">Vehicle Information</h6>
+            <div class="info-row">
+              <span class="info-label">Make/Model:</span>
+              <span class="info-value">${driver.vehicle_make} ${driver.vehicle_model}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Year:</span>
+              <span class="info-value">${driver.vehicle_year}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Color:</span>
+              <span class="info-value">${driver.vehicle_color}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Plate Number:</span>
+              <span class="info-value">${driver.vehicle_plate}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Registered:</span>
+              <span class="info-value">${formatDate(driver.created_at)}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2 mt-3">
+          <button class="btn btn-sm bg-gradient-success" onclick="approveDriver(${driver.id})">
+            <i class="fas fa-check me-1"></i> Approve Driver
+          </button>
+          <button class="btn btn-sm bg-gradient-danger" onclick="rejectDriver(${driver.id})">
+            <i class="fas fa-times me-1"></i> Reject Driver
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ================== USER APPROVAL ACTIONS ================== */
 
 async function approveUser(userId) {
-    const notes = prompt('Add approval notes (optional):');
-    
-    if (notes === null) return; // Cancelled
-    
-    const confirmApprove = confirm('Are you sure you want to approve this user account?');
-    if (!confirmApprove) return;
-    
-    try {
-        await auth.apiRequest(`/admin/users/${userId}/approve`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                status: 'approved',
-                notes: notes || null
-            })
-        });
-        
-        showToast('User approved successfully', 'success');
-        await loadPendingUsers();
-    } catch (error) {
-        showToast('Failed to approve user: ' + error.message, 'error');
-        console.error(error);
-    }
+  const notes = prompt('Add approval notes (optional):');
+  if (notes === null) return; // User cancelled
+
+  if (!confirm('Are you sure you want to approve this user account?')) return;
+
+  try {
+    await api.approveUser(userId, {
+      status: 'approved',
+      notes: notes || null
+    });
+
+    showToast('User approved successfully!', 'success');
+    await loadStatistics();
+    await loadPendingUsers();
+  } catch (error) {
+    console.error('Error approving user:', error);
+    showToast('Failed to approve user: ' + error.message, 'error');
+  }
 }
 
 async function rejectUser(userId) {
-    const notes = prompt('Add rejection reason (optional but recommended):');
-    
-    if (notes === null) return; // Cancelled
-    
-    const confirmReject = confirm('Are you sure you want to reject this user account?');
-    if (!confirmReject) return;
-    
-    try {
-        await auth.apiRequest(`/admin/users/${userId}/approve`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                status: 'rejected',
-                notes: notes || null
-            })
-        });
-        
-        showToast('User rejected', 'success');
-        await loadPendingUsers();
-    } catch (error) {
-        showToast('Failed to reject user: ' + error.message, 'error');
-        console.error(error);
-    }
+  const notes = prompt('Add rejection reason (recommended):');
+  if (notes === null) return; // User cancelled
+
+  if (!confirm('Are you sure you want to reject this user account?')) return;
+
+  try {
+    await api.approveUser(userId, {
+      status: 'rejected',
+      notes: notes || null
+    });
+
+    showToast('User rejected', 'success');
+    await loadStatistics();
+    await loadPendingUsers();
+  } catch (error) {
+    console.error('Error rejecting user:', error);
+    showToast('Failed to reject user: ' + error.message, 'error');
+  }
 }
 
 async function suspendUser(userId) {
-    const notes = prompt('Add suspension reason (required):');
-    
-    if (!notes) {
-        alert('Suspension reason is required');
-        return;
-    }
-    
-    const confirmSuspend = confirm('Are you sure you want to suspend this user account?');
-    if (!confirmSuspend) return;
-    
-    try {
-        await auth.apiRequest(`/admin/users/${userId}/approve`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                status: 'suspended',
-                notes: notes
-            })
-        });
-        
-        showToast('User suspended', 'success');
-        await loadPendingUsers();
-    } catch (error) {
-        showToast('Failed to suspend user: ' + error.message, 'error');
-        console.error(error);
-    }
-}
+  const notes = prompt('Add suspension reason (required):');
+  if (!notes || notes.trim() === '') {
+    showToast('Suspension reason is required', 'error');
+    return;
+  }
 
-// ========== DRIVER APPROVALS ==========
+  if (!confirm('Are you sure you want to suspend this user account?')) return;
 
-async function loadPendingDrivers() {
-    showLoading('pending-drivers-list');
-    try {
-        const drivers = await auth.apiRequest('/admin/drivers/pending');
-        displayPendingDrivers(drivers);
-    } catch (error) {
-        showError('pending-drivers-list', 'Failed to load pending drivers');
-        console.error(error);
-    }
-}
-
-function displayPendingDrivers(drivers) {
-    const container = document.getElementById('pending-drivers-list');
-    
-    if (drivers.length === 0) {
-        container.innerHTML = '<div class="empty-state"><p>✅ No pending driver approvals</p></div>';
-        return;
-    }
-    
-    let html = '<div class="approval-list">';
-    
-    drivers.forEach(driver => {
-        html += `
-            <div class="approval-card driver-card">
-                <div class="approval-header">
-                    <h3>${driver.first_name} ${driver.last_name}</h3>
-                    <span class="badge badge-warning">PENDING</span>
-                </div>
-                <div class="approval-details driver-details">
-                    <div class="details-section">
-                        <h4>Personal Information</h4>
-                        <p><strong>Phone:</strong> ${driver.phone_number}</p>
-                        <p><strong>License #:</strong> ${driver.license_number}</p>
-                        <p><strong>License Expiry:</strong> ${driver.license_expiry}</p>
-                        <p><strong>Insurance #:</strong> ${driver.insurance_number}</p>
-                        <p><strong>Insurance Expiry:</strong> ${driver.insurance_expiry}</p>
-                    </div>
-                    <div class="details-section">
-                        <h4>Vehicle Information</h4>
-                        <p><strong>Make/Model:</strong> ${driver.vehicle_make} ${driver.vehicle_model}</p>
-                        <p><strong>Year:</strong> ${driver.vehicle_year}</p>
-                        <p><strong>Color:</strong> ${driver.vehicle_color}</p>
-                        <p><strong>Plate:</strong> ${driver.vehicle_plate}</p>
-                    </div>
-                    <p><strong>Registered:</strong> ${new Date(driver.created_at).toLocaleDateString()}</p>
-                </div>
-                <div class="approval-actions">
-                    <button class="btn btn-success" onclick="approveDriver(${driver.id})">
-                        <i class="fas fa-check"></i> Approve Driver
-                    </button>
-                    <button class="btn btn-danger" onclick="rejectDriver(${driver.id})">
-                        <i class="fas fa-times"></i> Reject Driver
-                    </button>
-                </div>
-            </div>
-        `;
+  try {
+    await api.approveUser(userId, {
+      status: 'suspended',
+      notes: notes
     });
-    
-    html += '</div>';
-    container.innerHTML = html;
+
+    showToast('User suspended', 'success');
+    await loadStatistics();
+    await loadPendingUsers();
+  } catch (error) {
+    console.error('Error suspending user:', error);
+    showToast('Failed to suspend user: ' + error.message, 'error');
+  }
 }
+
+/* ================== DRIVER APPROVAL ACTIONS ================== */
 
 async function approveDriver(driverId) {
-    const notes = prompt('Add approval notes (optional - e.g., "Documents verified"):');
-    
-    if (notes === null) return; // Cancelled
-    
-    const confirmApprove = confirm('Are you sure you want to approve this driver profile?');
-    if (!confirmApprove) return;
-    
-    try {
-        await auth.apiRequest(`/admin/drivers/${driverId}/approve`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                status: 'approved',
-                notes: notes || null
-            })
-        });
-        
-        showToast('Driver approved successfully', 'success');
-        await loadPendingDrivers();
-    } catch (error) {
-        showToast('Failed to approve driver: ' + error.message, 'error');
-        console.error(error);
-    }
+  const notes = prompt('Add approval notes (e.g., "Documents verified"):');
+  if (notes === null) return; // User cancelled
+
+  if (!confirm('Are you sure you want to approve this driver profile?')) return;
+
+  try {
+    await api.approveDriver(driverId, {
+      status: 'approved',
+      notes: notes || null
+    });
+
+    showToast('Driver approved successfully!', 'success');
+    await loadStatistics();
+    await loadPendingDrivers();
+  } catch (error) {
+    console.error('Error approving driver:', error);
+    showToast('Failed to approve driver: ' + error.message, 'error');
+  }
 }
 
 async function rejectDriver(driverId) {
-    const notes = prompt('Add rejection reason (e.g., "Invalid license"):');
-    
-    if (notes === null) return; // Cancelled
-    
-    const confirmReject = confirm('Are you sure you want to reject this driver profile?');
-    if (!confirmReject) return;
-    
-    try {
-        await auth.apiRequest(`/admin/drivers/${driverId}/approve`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                status: 'rejected',
-                notes: notes || null
-            })
-        });
-        
-        showToast('Driver rejected', 'success');
-        await loadPendingDrivers();
-    } catch (error) {
-        showToast('Failed to reject driver: ' + error.message, 'error');
-        console.error(error);
-    }
-}
+  const notes = prompt('Add rejection reason (e.g., "Invalid license"):');
+  if (notes === null) return; // User cancelled
 
-// ========== ALL USERS VIEW ==========
+  if (!confirm('Are you sure you want to reject this driver profile?')) return;
 
-async function loadAllUsers() {
-    showLoading('all-users-list');
-    try {
-        const users = await auth.apiRequest('/admin/users');
-        displayAllUsers(users);
-    } catch (error) {
-        showError('all-users-list', 'Failed to load users');
-        console.error(error);
-    }
-}
-
-function displayAllUsers(users) {
-    const container = document.getElementById('all-users-list');
-    
-    let html = `
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Company</th>
-                    <th>Status</th>
-                    <th>Registered</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-    
-    users.forEach(user => {
-        const statusBadge = getStatusBadge(user.account_status);
-        html += `
-            <tr>
-                <td>${user.email}</td>
-                <td><span class="badge badge-${user.role === 'admin' ? 'danger' : user.role === 'client' ? 'primary' : 'info'}">${user.role}</span></td>
-                <td>${user.company_name || 'N/A'}</td>
-                <td>${statusBadge}</td>
-                <td>${new Date(user.created_at).toLocaleDateString()}</td>
-                <td>
-                    ${user.role !== 'admin' && user.account_status !== 'approved' ? 
-                        `<button class="btn btn-sm btn-success" onclick="quickApproveUser(${user.id})">Approve</button>` : ''}
-                    ${user.role !== 'admin' && user.account_status === 'approved' ? 
-                        `<button class="btn btn-sm btn-warning" onclick="suspendUser(${user.id})">Suspend</button>` : ''}
-                </td>
-            </tr>
-        `;
+  try {
+    await api.approveDriver(driverId, {
+      status: 'rejected',
+      notes: notes || null
     });
-    
-    html += `
-            </tbody>
-        </table>
-    `;
-    
-    container.innerHTML = html;
+
+    showToast('Driver rejected', 'success');
+    await loadStatistics();
+    await loadPendingDrivers();
+  } catch (error) {
+    console.error('Error rejecting driver:', error);
+    showToast('Failed to reject driver: ' + error.message, 'error');
+  }
 }
 
-async function quickApproveUser(userId) {
-    try {
-        await auth.apiRequest(`/admin/users/${userId}/approve`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                status: 'approved',
-                notes: 'Quick approval'
-            })
-        });
-        
-        showToast('User approved', 'success');
-        await loadAllUsers();
-    } catch (error) {
-        showToast('Failed to approve: ' + error.message, 'error');
-    }
+/* ================== HELPER FUNCTIONS ================== */
+
+function loadingState() {
+  return `
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="text-sm text-muted mt-2">Loading...</p>
+    </div>
+  `;
 }
 
-// ========== ALL DRIVERS VIEW ==========
-
-async function loadAllDrivers() {
-    showLoading('all-drivers-list');
-    try {
-        const drivers = await auth.apiRequest('/admin/drivers');
-        displayAllDrivers(drivers);
-    } catch (error) {
-        showError('all-drivers-list', 'Failed to load drivers');
-        console.error(error);
-    }
+function emptyState(message) {
+  return `
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i>
+        <p class="text-sm text-secondary mt-3 mb-0">${message}</p>
+      </div>
+    </div>
+  `;
 }
 
-function displayAllDrivers(drivers) {
-    const container = document.getElementById('all-drivers-list');
-    
-    let html = `
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>License</th>
-                    <th>Vehicle</th>
-                    <th>Status</th>
-                    <th>Deliveries</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-    
-    drivers.forEach(driver => {
-        const statusBadge = getStatusBadge(driver.driver_status);
-        html += `
-            <tr>
-                <td>${driver.first_name} ${driver.last_name}</td>
-                <td>${driver.phone_number}</td>
-                <td>${driver.license_number}</td>
-                <td>${driver.vehicle_make} ${driver.vehicle_model} (${driver.vehicle_plate})</td>
-                <td>${statusBadge}</td>
-                <td>${driver.total_deliveries}</td>
-                <td>
-                    ${driver.driver_status !== 'approved' ? 
-                        `<button class="btn btn-sm btn-success" onclick="quickApproveDriver(${driver.id})">Approve</button>` : ''}
-                    ${driver.driver_status === 'approved' ? 
-                        `<span class="text-muted">Active</span>` : ''}
-                </td>
-            </tr>
-        `;
-    });
-    
-    html += `
-            </tbody>
-        </table>
-    `;
-    
-    container.innerHTML = html;
-}
-
-async function quickApproveDriver(driverId) {
-    try {
-        await auth.apiRequest(`/admin/drivers/${driverId}/approve`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                status: 'approved',
-                notes: 'Quick approval'
-            })
-        });
-        
-        showToast('Driver approved', 'success');
-        await loadAllDrivers();
-    } catch (error) {
-        showToast('Failed to approve: ' + error.message, 'error');
-    }
-}
-
-// ========== UTILITY FUNCTIONS ==========
-
-function getStatusBadge(status) {
-    const badges = {
-        'pending': '<span class="badge badge-warning">⏳ Pending</span>',
-        'approved': '<span class="badge badge-success">✅ Approved</span>',
-        'rejected': '<span class="badge badge-danger">❌ Rejected</span>',
-        'suspended': '<span class="badge badge-danger">⛔ Suspended</span>'
-    };
-    return badges[status] || badges['pending'];
-}
-
-function showLoading(containerId) {
-    const container = document.getElementById(containerId);
-    if (container) {
-        container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
-    }
-}
-
-function showError(containerId, message) {
-    const container = document.getElementById(containerId);
-    if (container) {
-        container.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i> ${message}</div>`;
-    }
-}
-
-function showToast(message, type = 'info') {
-    // You can use your existing toast/notification system
-    // This is a simple implementation
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 100);
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+function errorState(message) {
+  return `
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+        <p class="text-sm text-danger mt-3 mb-0">${message}</p>
+        <button class="btn btn-sm btn-outline-primary mt-3" onclick="loadCurrentTab()">
+          <i class="fas fa-redo me-1"></i> Try Again
+        </button>
+      </div>
+    </div>
+  `;
 }

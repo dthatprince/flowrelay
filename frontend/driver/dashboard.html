@@ -13,7 +13,7 @@
 
   <style>
     body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     }
     
     .toast-notification {
@@ -81,7 +81,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="available-offers.html">
+          <a class="nav-link" href="available-offers.html" id="availableOffersLink">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-search text-warning"></i>
             </div>
@@ -89,7 +89,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="my-deliveries.html">
+          <a class="nav-link" href="my-deliveries.html" id="myDeliveriesLink">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-truck text-success"></i>
             </div>
@@ -97,7 +97,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="history.html">
+          <a class="nav-link" href="history.html" id="historyLink">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-history text-secondary"></i>
             </div>
@@ -128,8 +128,8 @@
         </nav>
         <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
           <div class="ms-md-auto pe-md-3 d-flex align-items-center">
-            <!-- Status Toggle -->
-            <div class="form-check form-switch ms-3">
+            <!-- Status Toggle (only for approved drivers) -->
+            <div class="form-check form-switch ms-3" id="statusToggleContainer" style="display: none;">
               <input class="form-check-input" type="checkbox" id="statusToggle">
               <label class="form-check-label" for="statusToggle">
                 <span id="statusLabel">Offline</span>
@@ -149,15 +149,11 @@
     </nav>
 
     <div class="container-fluid py-4">
-      <!-- Profile Check Alert -->
-      <div class="alert alert-warning" id="profileAlert" style="display: none;">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        <strong>Profile Incomplete!</strong> Please complete your driver profile to start accepting offers.
-        <a href="profile.html" class="alert-link">Complete Profile</a>
-      </div>
+      <!-- Profile Status Alerts -->
+      <div id="alertsContainer"></div>
 
       <!-- Statistics Row -->
-      <div class="row">
+      <div class="row" id="statisticsRow">
         <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
           <div class="card">
             <div class="card-body p-3">
@@ -170,7 +166,7 @@
                 </div>
                 <div class="col-4 text-end">
                   <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                    <i class="ni ni-delivery-fast text-lg opacity-10"></i>
+                    <i class="fas fa-truck text-lg opacity-10"></i>
                   </div>
                 </div>
               </div>
@@ -189,7 +185,7 @@
                 </div>
                 <div class="col-4 text-end">
                   <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
-                    <i class="ni ni-time-alarm text-lg opacity-10"></i>
+                    <i class="fas fa-clock text-lg opacity-10"></i>
                   </div>
                 </div>
               </div>
@@ -208,7 +204,7 @@
                 </div>
                 <div class="col-4 text-end">
                   <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
-                    <i class="ni ni-check-bold text-lg opacity-10"></i>
+                    <i class="fas fa-check-circle text-lg opacity-10"></i>
                   </div>
                 </div>
               </div>
@@ -223,14 +219,14 @@
                   <div class="numbers">
                     <p class="text-sm mb-0 text-capitalize font-weight-bold">Rating</p>
                     <h5 class="font-weight-bolder mb-0">
-                      <i class="fas fa-star text-warning"></i>
                       <span id="driverRating">5.0</span>
+                      <i class="fas fa-star text-warning text-sm"></i>
                     </h5>
                   </div>
                 </div>
                 <div class="col-4 text-end">
                   <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
-                    <i class="ni ni-trophy text-lg opacity-10"></i>
+                    <i class="fas fa-star text-lg opacity-10"></i>
                   </div>
                 </div>
               </div>
@@ -239,9 +235,10 @@
         </div>
       </div>
 
-      <!-- Active Deliveries -->
+      <!-- Content Row -->
       <div class="row mt-4">
-        <div class="col-lg-8 mb-lg-0 mb-4">
+        <!-- Active Deliveries -->
+        <div class="col-lg-8">
           <div class="card">
             <div class="card-header pb-0">
               <h6>Active Deliveries</h6>
@@ -251,7 +248,7 @@
                 <table class="table align-items-center mb-0">
                   <thead>
                     <tr>
-                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Offer</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Order</th>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Route</th>
                       <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Pickup</th>
                       <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
@@ -269,26 +266,15 @@
           </div>
         </div>
 
-        <!-- Quick Actions -->
+        <!-- Quick Actions & Driver Info -->
         <div class="col-lg-4">
           <div class="card">
             <div class="card-header pb-0">
               <h6>Quick Actions</h6>
             </div>
             <div class="card-body p-3">
-              <div class="d-grid gap-2">
-                <a href="available-offers.html" class="btn btn-primary">
-                  <i class="fas fa-search me-2"></i>Browse Available Offers
-                </a>
-                <a href="my-deliveries.html" class="btn btn-info">
-                  <i class="fas fa-truck me-2"></i>My Deliveries
-                </a>
-                <a href="profile.html" class="btn btn-secondary">
-                  <i class="fas fa-user me-2"></i>Update Profile
-                </a>
-                <a href="history.html" class="btn btn-outline-secondary">
-                  <i class="fas fa-history me-2"></i>View History
-                </a>
+              <div class="d-grid gap-2" id="quickActionsContainer">
+                <!-- Actions will be dynamically added based on driver status -->
               </div>
             </div>
           </div>
@@ -302,7 +288,8 @@
               <p class="text-sm"><strong>Name:</strong> <span id="driverName">-</span></p>
               <p class="text-sm"><strong>Vehicle:</strong> <span id="vehicleInfo">-</span></p>
               <p class="text-sm"><strong>Plate:</strong> <span id="vehiclePlate">-</span></p>
-              <p class="text-sm"><strong>Status:</strong> <span id="driverStatus" class="badge badge-sm">-</span></p>
+              <p class="text-sm"><strong>Profile Status:</strong> <span id="profileStatus" class="badge badge-sm">-</span></p>
+              <p class="text-sm"><strong>Availability:</strong> <span id="driverStatus" class="badge badge-sm">-</span></p>
             </div>
           </div>
         </div>
@@ -319,141 +306,7 @@
   <script src="../assets/js/api.js"></script>
   <script src="../assets/js/auth.js"></script>
   <script src="../assets/js/utils.js"></script>
-  
-  <script>
-    // Check authentication
-    if (!auth.isAuthenticated() || auth.getUser().role !== 'driver') {
-      window.location.href = '../index.html';
-    }
-
-    let driverProfile = null;
-
-    // Load dashboard data
-    async function loadDashboard() {
-      try {
-        // Get driver profile
-        try {
-          driverProfile = await api.getDriverProfile();
-          updateDriverInfo(driverProfile);
-        } catch (error) {
-          document.getElementById('profileAlert').style.display = 'block';
-          return;
-        }
-
-        // Get statistics
-        const stats = await api.getDriverStatistics();
-        updateStatistics(stats);
-
-        // Get active deliveries
-        const activeOffers = await api.getDriverActiveOffers();
-        displayActiveDeliveries(activeOffers);
-
-      } catch (error) {
-        showToast('Failed to load dashboard data', 'error');
-      }
-    }
-
-    function updateDriverInfo(profile) {
-      document.getElementById('driverName').textContent = `${profile.first_name} ${profile.last_name}`;
-      document.getElementById('vehicleInfo').textContent = `${profile.vehicle_color} ${profile.vehicle_make} ${profile.vehicle_model}`;
-      document.getElementById('vehiclePlate').textContent = profile.vehicle_plate;
-      
-      const statusBadge = document.getElementById('driverStatus');
-      statusBadge.textContent = profile.status.toUpperCase();
-      statusBadge.className = `badge badge-sm bg-gradient-${profile.status === 'available' ? 'success' : profile.status === 'busy' ? 'warning' : 'secondary'}`;
-
-      // Update toggle
-      const toggle = document.getElementById('statusToggle');
-      const label = document.getElementById('statusLabel');
-      if (profile.status === 'available') {
-        toggle.checked = true;
-        label.textContent = 'Available';
-        label.className = 'form-check-label text-success';
-      } else if (profile.status === 'busy') {
-        toggle.checked = true;
-        toggle.disabled = true;
-        label.textContent = 'Busy';
-        label.className = 'form-check-label text-warning';
-      } else {
-        toggle.checked = false;
-        label.textContent = 'Offline';
-        label.className = 'form-check-label text-secondary';
-      }
-    }
-
-    function updateStatistics(stats) {
-      document.getElementById('totalDeliveries').textContent = stats.driver_info.total_deliveries;
-      document.getElementById('activeDeliveries').textContent = stats.statistics.in_progress + stats.statistics.matched;
-      document.getElementById('completedDeliveries').textContent = stats.statistics.completed;
-      document.getElementById('driverRating').textContent = stats.driver_info.rating;
-    }
-
-    function displayActiveDeliveries(offers) {
-      const tbody = document.getElementById('activeDeliveriesTable');
-      
-      if (offers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No active deliveries</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = offers.map(offer => `
-        <tr>
-          <td>
-            <p class="text-xs font-weight-bold mb-0">#${offer.id}</p>
-            <p class="text-xs text-secondary mb-0">${offer.description.substring(0, 30)}...</p>
-          </td>
-          <td>
-            <p class="text-xs font-weight-bold mb-0">From: ${offer.pickup_address.substring(0, 25)}...</p>
-            <p class="text-xs text-secondary mb-0">To: ${offer.dropoff_address.substring(0, 25)}...</p>
-          </td>
-          <td class="align-middle text-center">
-            <p class="text-xs font-weight-bold mb-0">${offer.pickup_date}</p>
-            <p class="text-xs text-secondary mb-0">${offer.pickup_time}</p>
-          </td>
-          <td class="align-middle text-center">
-            <span class="badge badge-sm bg-gradient-${getStatusBadge(offer.status)}">${getStatusDisplay(offer.status)}</span>
-          </td>
-          <td class="align-middle">
-            <a href="my-deliveries.html?id=${offer.id}" class="btn btn-link text-primary mb-0">
-              <i class="fas fa-eye text-xs"></i>
-            </a>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // Status toggle
-    document.getElementById('statusToggle').addEventListener('change', async (e) => {
-      const newStatus = e.target.checked ? 'available' : 'offline';
-      
-      try {
-        await api.updateDriverStatus(newStatus);
-        const label = document.getElementById('statusLabel');
-        
-        if (newStatus === 'available') {
-          label.textContent = 'Available';
-          label.className = 'form-check-label text-success';
-          showToast('Status updated to Available', 'success');
-        } else {
-          label.textContent = 'Offline';
-          label.className = 'form-check-label text-secondary';
-          showToast('Status updated to Offline', 'success');
-        }
-
-        // Update status badge
-        const statusBadge = document.getElementById('driverStatus');
-        statusBadge.textContent = newStatus.toUpperCase();
-        statusBadge.className = `badge badge-sm bg-gradient-${newStatus === 'available' ? 'success' : 'secondary'}`;
-
-      } catch (error) {
-        e.target.checked = !e.target.checked;
-        showToast('Failed to update status', 'error');
-      }
-    });
-
-    // Load dashboard
-    loadDashboard();
-  </script>
+  <script src="../assets/js/driver-dashboard.js"></script>
 </body>
 
 </html>

@@ -204,6 +204,23 @@
       try {
         driverProfile = await api.getDriverProfile();
         
+        // Check if driver profile is approved
+        if (driverProfile.driver_status !== 'approved') {
+          let message = '';
+          if (driverProfile.driver_status === 'pending') {
+            message = 'Your driver profile is pending approval. You cannot browse offers yet.';
+          } else if (driverProfile.driver_status === 'rejected') {
+            message = 'Your driver profile was rejected. Please update your profile.';
+          } else if (driverProfile.driver_status === 'suspended') {
+            message = 'Your driver profile is suspended. Please contact support.';
+          } else {
+            message = 'Your driver profile is not approved yet.';
+          }
+          showToast(message, 'error');
+          setTimeout(() => window.location.href = 'dashboard.html', 2000);
+          return;
+        }
+        
         // Check if driver is available
         if (driverProfile.status !== 'available') {
           document.getElementById('statusAlert').style.display = 'block';
