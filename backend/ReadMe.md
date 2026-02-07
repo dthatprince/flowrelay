@@ -46,7 +46,7 @@ python main.py
 
 or 
 
-uvicorn app.main:app --reload
+uvicorn main:app --reload
 ```
 
 The application will run at **`http://127.0.0.1:8000/`**
