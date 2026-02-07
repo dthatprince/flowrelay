@@ -226,6 +226,7 @@ function displayActiveDeliveries(offers) {
       <td>
         <p class="text-xs font-weight-bold mb-0">From: ${truncate(offer.pickup_address, 25)}</p>
         <p class="text-xs text-secondary mb-0">To: ${truncate(offer.dropoff_address, 25)}</p>
+        <p class="text-xs text-secondary mb-0">Mileage: ${offer.total_mileage} miles</p>
       </td>
       <td class="align-middle text-center">
         <p class="text-xs font-weight-bold mb-0">${offer.pickup_date}</p>

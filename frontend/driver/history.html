@@ -307,6 +307,7 @@
           <td>
             <p class="text-xs font-weight-bold mb-0">${offer.pickup_address.substring(0, 30)}...</p>
             <p class="text-xs text-secondary mb-0">${offer.dropoff_address.substring(0, 30)}...</p>
+            <p class="text-xs text-secondary mb-0">Mileage: ${offer.total_mileage} miles</p>
           </td>
           <td>
             <p class="text-xs font-weight-bold mb-0">${formatDate(offer.updated_at)}</p>
@@ -349,6 +350,7 @@
             <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Route</h6>
             <p><strong><i class="fas fa-map-marker-alt text-success me-2"></i>Pickup:</strong><br>${offer.pickup_address}</p>
             <p><strong><i class="fas fa-map-marker-alt text-danger me-2"></i>Dropoff:</strong><br>${offer.dropoff_address}</p>
+            <p><strong><i class="fas fa-road text-info me-2"></i>Mileage:</strong> ${offer.total_mileage} miles</p>
           </div>
         </div>
         ${offer.additional_service ? `
@@ -411,6 +413,7 @@
         'Pickup Time': offer.pickup_time,
         'Pickup Address': offer.pickup_address,
         'Dropoff Address': offer.dropoff_address,
+        'Mileage': offer.total_mileage,
         'Status': offer.status,
         'Completed': formatDate(offer.updated_at)
       }));

@@ -11,6 +11,7 @@ class OfferCreate(BaseModel):
     pickup_time: str
     pickup_address: str
     dropoff_address: str
+    total_mileage: Optional[float] = None
     additional_service: Optional[str] = None
 
 class OfferUpdate(BaseModel):
@@ -21,6 +22,7 @@ class OfferUpdate(BaseModel):
     pickup_time: Optional[str] = None
     pickup_address: Optional[str] = None
     dropoff_address: Optional[str] = None
+    total_mileage: Optional[float] = None
     additional_service: Optional[str] = None
 
 class DriverAssignment(BaseModel):
@@ -42,6 +44,7 @@ class OfferResponse(BaseModel):
     pickup_time: str
     pickup_address: str
     dropoff_address: str
+    total_mileage: Optional[float]
     additional_service: Optional[str]
     status: OfferStatus
     driver_first_name: Optional[str]

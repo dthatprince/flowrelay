@@ -250,6 +250,7 @@
           <td>
             <p class="text-xs font-weight-bold mb-0">From: ${offer.pickup_address.substring(0, 30)}...</p>
             <p class="text-xs text-secondary mb-0">To: ${offer.dropoff_address.substring(0, 30)}...</p>
+            <p class="text-xs text-secondary mb-0">Total Mileage: ${offer.total_mileage} miles</p>
           </td>
           <td>
             <p class="text-xs font-weight-bold mb-0">${offer.pickup_date}</p>
@@ -304,6 +305,7 @@
             <div class="col-12">
               <p><strong>Pickup Address:</strong><br>${offer.pickup_address}</p>
               <p><strong>Dropoff Address:</strong><br>${offer.dropoff_address}</p>
+              <p><strong>Total Mileage:</strong><br>${offer.total_mileage} miles</p>
               ${offer.additional_service ? `<p><strong>Additional Services:</strong><br>${offer.additional_service}</p>` : ''}
             </div>
           </div>
@@ -361,6 +363,7 @@
         offer.description.toLowerCase().includes(searchTerm) ||
         offer.pickup_address.toLowerCase().includes(searchTerm) ||
         offer.dropoff_address.toLowerCase().includes(searchTerm) ||
+        offer.total_mileage.toString().includes(searchTerm) ||
         offer.company_representative.toLowerCase().includes(searchTerm)
       );
       displayOffers(filtered);

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, Float, Integer, String, DateTime, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -106,6 +106,7 @@ class Offer(Base):
     pickup_time = Column(String)
     pickup_address = Column(String)
     dropoff_address = Column(String)
+    total_mileage = Column(Float, nullable=True)
     additional_service = Column(String, nullable=True)
     status = Column(SQLEnum(OfferStatus), default=OfferStatus.PENDING)
     driver_first_name = Column(String, nullable=True)

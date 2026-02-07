@@ -162,6 +162,7 @@ function displayOffers(offers) {
                 <div class="offer-details">
                     <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Pickup:</strong> ${offer.pickup_address}</p>
                     <p><i class="fas fa-map-marker-alt text-success"></i> <strong>Dropoff:</strong> ${offer.dropoff_address}</p>
+                    <p><i class="fas fa-road"></i> <strong>Total Mileage:</strong> ${offer.total_mileage} miles</p>
                     <p><i class="fas fa-calendar"></i> <strong>Date:</strong> ${offer.pickup_date} at ${offer.pickup_time}</p>
                     <p><i class="fas fa-user"></i> <strong>Representative:</strong> ${offer.company_representative}</p>
                     <p><i class="fas fa-phone"></i> <strong>Emergency:</strong> ${offer.emergency_phone}</p>

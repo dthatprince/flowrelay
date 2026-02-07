@@ -47,6 +47,7 @@ def create_offer(
         pickup_time=offer.pickup_time,
         pickup_address=offer.pickup_address,
         dropoff_address=offer.dropoff_address,
+        total_mileage=offer.total_mileage,
         additional_service=offer.additional_service
     )
     

@@ -397,6 +397,7 @@
           <div class="col-12">
             <p><strong>Pickup:</strong><br>${offer.pickup_address}</p>
             <p><strong>Dropoff:</strong><br>${offer.dropoff_address}</p>
+            <p><strong>Total Mileage:</strong><br>${offer.total_mileage} miles</p>
             ${offer.additional_service ? `<p><strong>Additional:</strong><br>${offer.additional_service}</p>` : ''}
           </div>
         </div>
@@ -576,6 +577,7 @@
         return offer.description.toLowerCase().includes(searchTerm) ||
                offer.pickup_address.toLowerCase().includes(searchTerm) ||
                offer.dropoff_address.toLowerCase().includes(searchTerm) ||
+               offer.total_mileage.toString().includes(searchTerm) ||
                clientEmail.includes(searchTerm);
       });
       displayOffers(filtered);

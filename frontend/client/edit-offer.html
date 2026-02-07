@@ -199,6 +199,16 @@
                 </div>
 
                 <div class="row">
+                  <!-- Total Mileage -->
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label for="totalMileage" class="form-control-label">Total Mileage</label>
+                      <input type="number" inputmode="decimal" step="0.1" class="form-control" id="totalMileage" placeholder="Enter total mileage for this offer (e.g., 120 miles)" min="0" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
                   <!-- Additional Services -->
                   <div class="col-12">
                     <div class="form-group">
@@ -278,6 +288,7 @@
         document.getElementById('pickupTime').value = offer.pickup_time;
         document.getElementById('pickupAddress').value = offer.pickup_address;
         document.getElementById('dropoffAddress').value = offer.dropoff_address;
+        document.getElementById('totalMileage').value = offer.total_mileage;
         document.getElementById('additionalService').value = offer.additional_service || '';
         
         // Show form and hide loading
@@ -311,6 +322,7 @@
         pickup_time: document.getElementById('pickupTime').value,
         pickup_address: document.getElementById('pickupAddress').value,
         dropoff_address: document.getElementById('dropoffAddress').value,
+        total_mileage: document.getElementById('totalMileage').value,
         additional_service: document.getElementById('additionalService').value || null
       };
       
