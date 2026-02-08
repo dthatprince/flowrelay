@@ -280,7 +280,8 @@ class API {
         });
     }
 
-    async adminUpdateDriverStatus(driverId, status) {
+    // Updated: Now changes approval status instead of operational status
+    async adminUpdateDriverApprovalStatus(driverId, status) {
         return this.request(`/admin/drivers/${driverId}/status?status=${status}`, {
             method: 'PUT',
         });

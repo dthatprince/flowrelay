@@ -201,9 +201,10 @@
         <div class="col-12">
           <div class="btn-group" role="group">
             <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All Drivers</button>
-            <button type="button" class="btn btn-sm btn-outline-success" data-filter="available">Available</button>
-            <button type="button" class="btn btn-sm btn-outline-warning" data-filter="busy">Busy</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" data-filter="offline">Offline</button>
+            <button type="button" class="btn btn-sm btn-outline-warning" data-filter="pending">Pending</button>
+            <button type="button" class="btn btn-sm btn-outline-success" data-filter="approved">Approved</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-filter="rejected">Rejected</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-filter="suspended">Suspended</button>
           </div>
         </div>
       </div>
@@ -223,7 +224,7 @@
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Driver</th>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Vehicle</th>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">License</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Email Verification Status</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Approval Status</th>
                       <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Rating</th>
                       <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Deliveries</th>
                       <th class="text-secondary opacity-7"></th>
@@ -309,14 +310,14 @@
 
     function updateStatistics() {
       const total = allDrivers.length;
-      const available = allDrivers.filter(d => d.status === 'available').length;
-      const busy = allDrivers.filter(d => d.status === 'busy').length;
-      const offline = allDrivers.filter(d => d.status === 'offline').length;
+      const pending = allDrivers.filter(d => d.driver_status === 'pending').length;
+      const approved = allDrivers.filter(d => d.driver_status === 'approved').length;
+      const rejected = allDrivers.filter(d => d.driver_status === 'rejected').length;
 
       document.getElementById('totalDrivers').textContent = total;
-      document.getElementById('availableDrivers').textContent = available;
-      document.getElementById('busyDrivers').textContent = busy;
-      document.getElementById('offlineDrivers').textContent = offline;
+      document.getElementById('availableDrivers').textContent = approved;
+      document.getElementById('busyDrivers').textContent = pending;
+      document.getElementById('offlineDrivers').textContent = rejected;
     }
 
     function displayDrivers(drivers) {
@@ -327,8 +328,18 @@
         return;
       }
       
-      tbody.innerHTML = drivers.map(driver => `
-        <tr data-status="${driver.status}">
+      tbody.innerHTML = drivers.map(driver => {
+        // Determine approval status badge
+        const statusConfig = {
+          'pending': { class: 'warning', text: 'PENDING' },
+          'approved': { class: 'success', text: 'APPROVED' },
+          'rejected': { class: 'danger', text: 'REJECTED' },
+          'suspended': { class: 'danger', text: 'SUSPENDED' }
+        };
+        const config = statusConfig[driver.driver_status] || statusConfig['pending'];
+        
+        return `
+        <tr data-status="${driver.driver_status}">
           <td>
             <div class="d-flex px-2 py-1">
               <div>
@@ -351,8 +362,8 @@
             <p class="text-xs text-secondary mb-0">Exp: ${driver.license_expiry}</p>
           </td>
           <td class="align-middle text-center">
-            <span class="badge badge-sm bg-gradient-${driver.status === 'available' ? 'success' : driver.status === 'busy' ? 'warning' : 'secondary'}">
-              ${driver.status ? driver.status.toUpperCase() : 'UNKNOWN'}
+            <span class="badge badge-sm bg-gradient-${config.class}">
+              ${config.text}
             </span>
           </td>
           <td class="align-middle text-center">
@@ -368,29 +379,50 @@
               <i class="fas fa-eye text-xs"></i>
             </button>
             <div class="dropdown d-inline">
-              <button class="btn btn-link text-info mb-0 px-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Change Status">
-                <i class="fas fa-toggle-on text-xs"></i>
+              <button class="btn btn-link text-info mb-0 px-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Change Approval Status">
+                <i class="fas fa-user-check text-xs"></i>
               </button>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'available'); return false;">
-                  <i class="fas fa-check text-success me-2"></i>Available
+                <li><a class="dropdown-item" href="#" onclick="updateDriverApprovalStatus(${driver.id}, 'pending'); return false;">
+                  <i class="fas fa-clock text-warning me-2"></i>Pending
                 </a></li>
-                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'busy'); return false;">
-                  <i class="fas fa-clock text-warning me-2"></i>Busy
+                <li><a class="dropdown-item" href="#" onclick="updateDriverApprovalStatus(${driver.id}, 'approved'); return false;">
+                  <i class="fas fa-check text-success me-2"></i>Approved
                 </a></li>
-                <li><a class="dropdown-item" href="#" onclick="updateDriverStatus(${driver.id}, 'offline'); return false;">
-                  <i class="fas fa-times text-secondary me-2"></i>Offline
+                <li><a class="dropdown-item" href="#" onclick="updateDriverApprovalStatus(${driver.id}, 'rejected'); return false;">
+                  <i class="fas fa-times text-danger me-2"></i>Rejected
+                </a></li>
+                <li><a class="dropdown-item" href="#" onclick="updateDriverApprovalStatus(${driver.id}, 'suspended'); return false;">
+                  <i class="fas fa-ban text-secondary me-2"></i>Suspended
                 </a></li>
               </ul>
             </div>
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function viewDriver(driverId) {
       const driver = allDrivers.find(d => d.id === driverId);
       if (!driver) return;
+
+      // Approval status badge config
+      const statusConfig = {
+        'pending': { class: 'warning', text: 'Pending' },
+        'approved': { class: 'success', text: 'Approved' },
+        'rejected': { class: 'danger', text: 'Rejected' },
+        'suspended': { class: 'danger', text: 'Suspended' }
+      };
+      const approvalConfig = statusConfig[driver.driver_status] || statusConfig['pending'];
+      
+      // Operational status badge config
+      const operationalConfig = {
+        'available': { class: 'success', text: 'Available' },
+        'busy': { class: 'warning', text: 'Busy' },
+        'offline': { class: 'secondary', text: 'Offline' }
+      };
+      const opConfig = operationalConfig[driver.status] || operationalConfig['offline'];
 
       const content = `
         <div class="row">
@@ -399,8 +431,9 @@
             <p><strong>Name:</strong> ${driver.first_name} ${driver.last_name}</p>
             <p><strong>Email:</strong> ${driver.email}</p>
             <p><strong>Phone:</strong> ${driver.phone_number}</p>
-            <p><strong>Status:</strong> <span class="badge bg-gradient-${driver.status === 'available' ? 'success' : driver.status === 'busy' ? 'warning' : 'secondary'}">${driver.status ? driver.status.toUpperCase() : 'UNKNOWN'}</span></p>
-            <p><strong>Account Status:</strong> <span class="badge bg-gradient-${driver.is_verified === 'true' ? 'success' : 'warning'}">${driver.is_verified === 'true' ? 'Verified' : 'Unverified'}</span></p>
+            <p><strong>Approval Status:</strong> <span class="badge bg-gradient-${approvalConfig.class}">${approvalConfig.text}</span></p>
+            <p><strong>Operational Status:</strong> <span class="badge bg-gradient-${opConfig.class}">${opConfig.text}</span></p>
+            <p><strong>Email Verified:</strong> <span class="badge bg-gradient-${driver.is_verified === 'true' ? 'success' : 'warning'}">${driver.is_verified === 'true' ? 'Verified' : 'Unverified'}</span></p>
           </div>
           <div class="col-md-6">
             <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Performance</h6>
@@ -426,25 +459,36 @@
             <p><strong>Insurance Expiry:</strong> ${driver.insurance_expiry}</p>
           </div>
         </div>
+        ${driver.driver_approval_notes ? `
+          <hr>
+          <div class="row">
+            <div class="col-12">
+              <h6 class="text-uppercase text-xs font-weight-bolder opacity-7">Admin Notes</h6>
+              <p class="text-sm">${driver.driver_approval_notes}</p>
+            </div>
+          </div>
+        ` : ''}
       `;
 
       document.getElementById('driverDetailsContent').innerHTML = content;
       new bootstrap.Modal(document.getElementById('viewDriverModal')).show();
     }
 
-    // Update driver status
-    async function updateDriverStatus(driverId, status) {
+    // Update driver approval status
+    async function updateDriverApprovalStatus(driverId, status) {
       const driver = allDrivers.find(d => d.id === driverId);
-      if (!confirm(`Change ${driver.first_name} ${driver.last_name}'s status to ${status}?`)) {
+      const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+      
+      if (!confirm(`Change ${driver.first_name} ${driver.last_name}'s approval status to ${statusText}?`)) {
         return;
       }
       
       try {
-        await api.adminUpdateDriverStatus(driverId, status);
-        showToast(`Driver status updated to ${status}`, 'success');
+        await api.adminUpdateDriverApprovalStatus(driverId, status);
+        showToast(`Driver approval status updated to ${statusText}`, 'success');
         loadDrivers();
       } catch (error) {
-        showToast(error.message || 'Failed to update driver status', 'error');
+        showToast(error.message || 'Failed to update driver approval status', 'error');
       }
     }
 
@@ -458,7 +502,7 @@
         let filtered = allDrivers;
 
         if (filter !== 'all') {
-          filtered = allDrivers.filter(d => d.status === filter);
+          filtered = allDrivers.filter(d => d.driver_status === filter);
         }
 
         displayDrivers(filtered);

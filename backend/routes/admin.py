@@ -193,27 +193,53 @@ def approve_driver(
     
     return driver
 
-@router.put("/drivers/{driver_id}/status")
-def admin_update_driver_status(
+@router.put("/drivers/{driver_id}/status", response_model=DriverResponse)
+def update_driver_approval_status(
     driver_id: int,
     status: str,
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-    """Admin can update driver operational status (available/busy/offline)"""
+    """
+    Update driver approval status (pending/approved/rejected/suspended).
+    This replaces the old operational status endpoint.
+    """
     driver = db.query(Driver).filter(Driver.id == driver_id).first()
     if not driver:
         raise HTTPException(status_code=404, detail="Driver not found")
     
-    valid_statuses = ["available", "busy", "offline"]
+    # Validate approval status
+    valid_statuses = ["pending", "approved", "rejected", "suspended"]
     if status not in valid_statuses:
-        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid status. Must be one of: {valid_statuses}"
+        )
     
-    driver.status = status
+    # Map string to AccountStatus enum
+    status_map = {
+        "pending": AccountStatus.PENDING,
+        "approved": AccountStatus.APPROVED,
+        "rejected": AccountStatus.REJECTED,
+        "suspended": AccountStatus.SUSPENDED
+    }
+    
+    # Update driver approval status
+    driver.driver_status = status_map[status]
+    driver.driver_approved_by = current_user.id
+    driver.driver_approved_at = datetime.utcnow()
+    
+    # Automatically adjust operational status based on approval status
+    if status == "approved":
+        driver.status = "available"
+    else:
+        driver.status = "offline"
+    
     driver.updated_at = datetime.utcnow()
     db.commit()
+    db.refresh(driver)
     
-    return {"message": f"Driver operational status updated to {status}"}
+    return driver
 
 # ===== OFFER MANAGEMENT =====
 
