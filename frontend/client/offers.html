@@ -363,7 +363,6 @@
         offer.description.toLowerCase().includes(searchTerm) ||
         offer.pickup_address.toLowerCase().includes(searchTerm) ||
         offer.dropoff_address.toLowerCase().includes(searchTerm) ||
-        offer.total_mileage.toString().includes(searchTerm) ||
         offer.company_representative.toLowerCase().includes(searchTerm)
       );
       displayOffers(filtered);
