@@ -292,6 +292,18 @@ class API {
             method: 'PUT',
         });
     }
+
+    // ADMIN REPORTS ENDPOINTS
+    async getTripsReport(startDate, endDate, status = 'all') {
+        const params = new URLSearchParams();
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+        if (status) params.append('status', status);
+        
+        return this.request(`/admin/reports/trips?${params.toString()}`, {
+            method: 'GET',
+        });
+    }
 }
 
 // Create global API instance

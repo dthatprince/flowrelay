@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Reports - Flow Relay</title>
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link id="pagestyle" href="../assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+  <link href="../assets/css/custom.css" rel="stylesheet" />
+  
+  <!-- XLSX Library for Excel Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- jsPDF and autoTable for PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Open Sans', sans-serif;
+    }
+    
+    .stat-card {
+      transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .export-buttons {
+      gap: 10px;
+    }
+    
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  <!-- Sidebar -->
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand m-0" href="dashboard.html">
+        <span class="ms-1 font-weight-bold">Admin Panel</span>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0">
+    <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-home text-primary"></i>
+            </div>
+            <span class="nav-link-text ms-1">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="approvals.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-user-check text-warning"></i>
+            </div>
+            <span class="nav-link-text ms-1">Account Approvals</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="users.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-users text-info"></i>
+            </div>
+            <span class="nav-link-text ms-1">Manage Users</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="drivers.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-car text-success"></i>
+            </div>
+            <span class="nav-link-text ms-1">Manage Drivers</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="offers.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-truck text-warning"></i>
+            </div>
+            <span class="nav-link-text ms-1">Manage Offers</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="reports.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-chart-bar text-danger"></i>
+            </div>
+            <span class="nav-link-text ms-1">Reports</span>
+          </a>
+        </li>
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account</h6>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link logout-btn" href="#">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-sign-out-alt text-danger"></i>
+            </div>
+            <span class="nav-link-text ms-1">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <!-- Navbar -->
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur">
+      <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="dashboard.html">Dashboard</a></li>
+            <li class="breadcrumb-item text-sm text-dark active">Reports</li>
+          </ol>
+          <h6 class="font-weight-bolder mb-0">Trips Reports</h6>
+        </nav>
+        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+          <div class="ms-md-auto pe-md-3 d-flex align-items-center"></div>
+          <ul class="navbar-nav justify-content-end">
+            <li class="nav-item d-flex align-items-center">
+              <a href="#" class="nav-link text-body font-weight-bold px-0">
+                <i class="fa fa-user me-sm-1"></i>
+                <span class="d-sm-inline d-none user-name">Admin</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+      <!-- Filters Card -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header pb-0">
+              <h6><i class="fas fa-filter me-2"></i>Report Filters</h6>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" class="form-control" id="startDate">
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" class="form-control" id="endDate">
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label>Status</label>
+                    <select class="form-control" id="statusFilter">
+                      <option value="all">All Statuses</option>
+                      <option value="completed">Completed</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="matched">Matched</option>
+                      <option value="pending">Pending</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                  <div class="form-group w-100">
+                    <button class="btn bg-gradient-primary w-100" id="generateReportBtn">
+                      <i class="fas fa-chart-line me-2"></i>Generate Report
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="row mb-4" id="statisticsRow" style="display: none;">
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card stat-card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Trips</p>
+                    <h5 class="font-weight-bolder mb-0" id="totalTrips">0</h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="fas fa-route text-lg opacity-10"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card stat-card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Mileage</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      <span id="totalMileage">0</span> <small class="text-sm">mi</small>
+                    </h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                    <i class="fas fa-road text-lg opacity-10"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card stat-card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Completed</p>
+                    <h5 class="font-weight-bolder mb-0" id="completedTrips">0</h5>
+                    <p class="text-xs mb-0">
+                      <span class="text-success font-weight-bold" id="completionRate">0%</span> rate
+                    </p>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
+                    <i class="fas fa-check-circle text-lg opacity-10"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+          <div class="card stat-card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Avg Mileage</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      <span id="avgMileage">0</span> <small class="text-sm">mi</small>
+                    </h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                    <i class="fas fa-tachometer-alt text-lg opacity-10"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report Table -->
+      <div class="row" id="reportRow" style="display: none;">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+              <h6>Trips Report</h6>
+              <div class="d-flex export-buttons no-print">
+                <button class="btn btn-sm btn-outline-success" id="exportExcelBtn">
+                  <i class="fas fa-file-excel me-1"></i> Export Excel
+                </button>
+                <button class="btn btn-sm btn-outline-danger" id="exportPdfBtn">
+                  <i class="fas fa-file-pdf me-1"></i> Export PDF
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+                  <i class="fas fa-print me-1"></i> Print
+                </button>
+              </div>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+              <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0" id="reportsTable">
+                  <thead>
+                    <tr>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Trip ID</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Date</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Client</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Driver</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Route</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Mileage</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportsTableBody">
+                    <tr>
+                      <td colspan="7" class="text-center py-4">No data. Please generate a report.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../assets/js/core/popper.min.js"></script>
+  <script src="../assets/js/core/bootstrap.min.js"></script>
+  <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="../assets/js/soft-ui-dashboard.min.js"></script>
+  
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/admin-reports.js"></script>
+</body>
+
+</html>
