@@ -76,11 +76,43 @@ def update_user(
     current_user: User = Depends(require_admin), 
     db: Session = Depends(get_db)
 ):
-    """Update user information"""
+    """
+    Update user information including account status.
+    For clients, admin can change account_status between 'approved' and 'suspended'.
+    """
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    # Can't edit yourself
+    if user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot edit your own account")
+    
+    # Can't edit other admins
+    if user.role == UserRole.ADMIN:
+        raise HTTPException(status_code=400, detail="Cannot edit admin accounts")
+    
+    # If account_status is being updated, validate it
+    if user_update.account_status is not None:
+        # Only allow approved or suspended for clients
+        if user.role == UserRole.CLIENT:
+            if user_update.account_status not in [AccountStatus.APPROVED, AccountStatus.SUSPENDED]:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="For clients, account status can only be 'approved' or 'suspended'"
+                )
+            
+            # Record who made the change
+            user.approved_by = current_user.id
+            user.approved_at = datetime.utcnow()
+        else:
+            # Don't allow changing account status for drivers through this endpoint
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot change account status for drivers through this endpoint. Use driver approval endpoints."
+            )
+    
+    # Update all fields
     for key, value in user_update.dict(exclude_unset=True).items():
         setattr(user, key, value)
     

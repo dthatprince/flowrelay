@@ -13,8 +13,8 @@
 </head>
 <style>
   body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    }
+    font-family: 'Open Sans', sans-serif;
+  }
 </style>
 <body class="g-sidenav-show bg-gray-100">
   <!-- Sidebar -->
@@ -38,11 +38,10 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="approvals.html">
-            <div
-              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-user-check text-warning"></i>
             </div>
-            <span class="nav-link-text ms-1">Account Approvals Requests</span>
+            <span class="nav-link-text ms-1">Account Approvals</span>
           </a>
         </li>
         <li class="nav-item">
@@ -152,8 +151,8 @@
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Company</th>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Contact</th>
                       <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Role</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Email Verification Status</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Joined</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Account Status</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Email Status</th>
                       <th class="text-secondary opacity-7"></th>
                     </tr>
                   </thead>
@@ -205,6 +204,14 @@
             <div class="mb-3">
               <label for="editEmergencyPhone" class="form-label">Emergency Phone</label>
               <input type="tel" class="form-control" id="editEmergencyPhone">
+            </div>
+            <div class="mb-3" id="accountStatusSection" style="display: none;">
+              <label for="editAccountStatus" class="form-label">Account Status</label>
+              <select class="form-control" id="editAccountStatus">
+                <option value="approved">Approved</option>
+                <option value="suspended">Suspended</option>
+              </select>
+              <small class="text-muted">Change account status between Approved and Suspended</small>
             </div>
           </form>
         </div>
@@ -272,7 +279,17 @@
         return;
       }
       
-      tbody.innerHTML = users.map(user => `
+      tbody.innerHTML = users.map(user => {
+        // Account status badge config
+        const accountStatusConfig = {
+          'pending': { class: 'warning', text: 'Pending' },
+          'approved': { class: 'success', text: 'Approved' },
+          'rejected': { class: 'danger', text: 'Rejected' },
+          'suspended': { class: 'danger', text: 'Suspended' }
+        };
+        const accountConfig = accountStatusConfig[user.account_status] || accountStatusConfig['pending'];
+        
+        return `
         <tr data-role="${user.role}" data-verified="${user.is_verified}">
           <td>
             <div class="d-flex px-2 py-1">
@@ -299,26 +316,29 @@
             <span class="badge badge-sm bg-gradient-${user.role === 'admin' ? 'danger' : 'info'}">${user.role.toUpperCase()}</span>
           </td>
           <td class="align-middle text-center">
+            <span class="badge badge-sm bg-gradient-${accountConfig.class}">${accountConfig.text}</span>
+          </td>
+          <td class="align-middle text-center">
             <span class="badge badge-sm bg-gradient-${user.is_verified === 'true' ? 'success' : 'warning'}">
               ${user.is_verified === 'true' ? 'Verified' : 'Unverified'}
             </span>
           </td>
-          <td class="align-middle text-center">
-            <span class="text-secondary text-xs font-weight-bold">${formatDate(user.created_at)}</span>
-          </td>
           <td class="align-middle">
-            <button class="btn btn-link text-secondary mb-0" onclick="viewUser(${user.id})">
+            <button class="btn btn-link text-secondary mb-0 px-2" onclick="viewUser(${user.id})" title="View">
               <i class="fas fa-eye text-xs"></i>
             </button>
-            <button class="btn btn-link text-primary mb-0" onclick="editUser(${user.id})">
-              <i class="fas fa-edit text-xs"></i>
-            </button>
-            <button class="btn btn-link text-danger mb-0" onclick="deleteUser(${user.id}, '${user.email}')">
-              <i class="fas fa-trash text-xs"></i>
-            </button>
+            ${user.role !== 'admin' ? `
+              <button class="btn btn-link text-info mb-0 px-2" onclick="editUser(${user.id})" title="Edit">
+                <i class="fas fa-edit text-xs"></i>
+              </button>
+              <button class="btn btn-link text-danger mb-0 px-2" onclick="deleteUser(${user.id}, '${user.email}')" title="Delete">
+                <i class="fas fa-trash text-xs"></i>
+              </button>
+            ` : ''}
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     }
 
     // View user details
@@ -326,12 +346,22 @@
       const user = allUsers.find(u => u.id === userId);
       if (!user) return;
 
+      // Account status badge config
+      const accountStatusConfig = {
+        'pending': { class: 'warning', text: 'Pending' },
+        'approved': { class: 'success', text: 'Approved' },
+        'rejected': { class: 'danger', text: 'Rejected' },
+        'suspended': { class: 'danger', text: 'Suspended' }
+      };
+      const accountConfig = accountStatusConfig[user.account_status] || accountStatusConfig['pending'];
+
       const content = `
         <div class="row">
           <div class="col-md-6">
             <p><strong>Email:</strong> ${user.email}</p>
             <p><strong>Role:</strong> <span class="badge bg-gradient-${user.role === 'admin' ? 'danger' : 'info'}">${user.role.toUpperCase()}</span></p>
-            <p><strong>Status:</strong> <span class="badge bg-gradient-${user.is_verified === 'true' ? 'success' : 'warning'}">${user.is_verified === 'true' ? 'Verified' : 'Unverified'}</span></p>
+            <p><strong>Email Status:</strong> <span class="badge bg-gradient-${user.is_verified === 'true' ? 'success' : 'warning'}">${user.is_verified === 'true' ? 'Verified' : 'Unverified'}</span></p>
+            <p><strong>Account Status:</strong> <span class="badge bg-gradient-${accountConfig.class}">${accountConfig.text}</span></p>
             <p><strong>Joined:</strong> ${formatDate(user.created_at)}</p>
           </div>
           <div class="col-md-6">
@@ -347,6 +377,14 @@
             <p><strong>Address:</strong><br>${user.address || '-'}</p>
           </div>
         </div>
+        ${user.approval_notes ? `
+          <hr>
+          <div class="row">
+            <div class="col-12">
+              <p><strong>Admin Notes:</strong><br>${user.approval_notes}</p>
+            </div>
+          </div>
+        ` : ''}
       `;
 
       document.getElementById('userDetailsContent').innerHTML = content;
@@ -366,12 +404,23 @@
       document.getElementById('editCompanyRepresentative').value = user.company_representative || '';
       document.getElementById('editEmergencyPhone').value = user.emergency_phone || '';
 
+      // Show account status dropdown only for clients
+      const accountStatusSection = document.getElementById('accountStatusSection');
+      if (user.role === 'client') {
+        accountStatusSection.style.display = 'block';
+        document.getElementById('editAccountStatus').value = user.account_status || 'approved';
+      } else {
+        accountStatusSection.style.display = 'none';
+      }
+
       new bootstrap.Modal(document.getElementById('editUserModal')).show();
     }
 
     // Save user changes
     document.getElementById('saveUserBtn').addEventListener('click', async () => {
       const userId = document.getElementById('editUserId').value;
+      const user = allUsers.find(u => u.id == userId);
+      
       const userData = {
         email: document.getElementById('editEmail').value,
         company_name: document.getElementById('editCompanyName').value,
@@ -380,6 +429,11 @@
         company_representative: document.getElementById('editCompanyRepresentative').value,
         emergency_phone: document.getElementById('editEmergencyPhone').value
       };
+
+      // Include account_status only for clients
+      if (user && user.role === 'client') {
+        userData.account_status = document.getElementById('editAccountStatus').value;
+      }
 
       try {
         await api.updateUser(userId, userData);

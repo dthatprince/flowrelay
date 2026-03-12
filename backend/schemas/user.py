@@ -31,9 +31,9 @@ class UserResponse(BaseModel):
     company_representative: Optional[str]
     emergency_phone: Optional[str]
     is_verified: str
-    account_status: AccountStatus  # NEW
-    approval_notes: Optional[str]  # NEW
-    approved_at: Optional[datetime]  # NEW
+    account_status: AccountStatus
+    approval_notes: Optional[str]
+    approved_at: Optional[datetime]
     
     class Config:
         from_attributes = True
@@ -45,6 +45,7 @@ class UserUpdate(BaseModel):
     phone_number: Optional[str] = None
     company_representative: Optional[str] = None
     emergency_phone: Optional[str] = None
+    account_status: Optional[AccountStatus] = None  # Allow updating account status
 
 class AccountApproval(BaseModel):
     """Schema for approving/rejecting user accounts"""
