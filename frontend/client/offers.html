@@ -11,28 +11,16 @@
   <link id="pagestyle" href="../assets/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
   
   <style>
-    body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-    
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
     .toast-notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 20px;
-      border-radius: 10px;
-      color: white;
-      font-weight: 600;
-      z-index: 9999;
-      opacity: 0;
-      transform: translateX(100%);
-      transition: all 0.3s ease;
+      position: fixed; top: 20px; right: 20px; padding: 15px 20px;
+      border-radius: 10px; color: white; font-weight: 600; z-index: 9999;
+      opacity: 0; transform: translateX(100%); transition: all 0.3s ease;
     }
     .toast-notification.show { opacity: 1; transform: translateX(0); }
     .toast-success { background: linear-gradient(310deg, #17ad37 0%, #98ec2d 100%); }
     .toast-error { background: linear-gradient(310deg, #ea0606 0%, #ff667c 100%); }
     .toast-content { display: flex; align-items: center; gap: 10px; }
-    
     .badge-warning { background: linear-gradient(310deg, #fb8c00 0%, #ffa726 100%); }
     .badge-info { background: linear-gradient(310deg, #2152ff 0%, #21d4fd 100%); }
     .badge-primary { background: linear-gradient(310deg, #7928ca 0%, #ff0080 100%); }
@@ -81,6 +69,14 @@
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account</h6>
         </li>
         <li class="nav-item">
+          <a class="nav-link btn" href="../change-password.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-key text-primary"></i>
+            </div>
+            <span class="nav-link-text ms-1">Change Password</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link logout-btn" href="#">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-sign-out-alt text-danger"></i>
@@ -93,7 +89,6 @@
   </aside>
 
   <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
-    <!-- Navbar -->
     <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" navbar-scroll="true">
       <div class="container-fluid py-1 px-3">
         <nav aria-label="breadcrumb">
@@ -123,10 +118,9 @@
     </nav>
 
     <div class="container-fluid py-4">
-      <!-- Filter Buttons -->
       <div class="row mb-3">
         <div class="col-12">
-          <div class="btn-group" role="group" aria-label="Status filter">
+          <div class="btn-group" role="group">
             <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
             <button type="button" class="btn btn-sm btn-outline-warning" data-filter="pending">Pending</button>
             <button type="button" class="btn btn-sm btn-outline-info" data-filter="matched">Matched</button>
@@ -137,7 +131,6 @@
         </div>
       </div>
 
-      <!-- Offers Table -->
       <div class="row">
         <div class="col-12">
           <div class="card mb-4">
@@ -162,9 +155,7 @@
                     </tr>
                   </thead>
                   <tbody id="offersTableBody">
-                    <tr>
-                      <td colspan="7" class="text-center py-4">Loading offers...</td>
-                    </tr>
+                    <tr><td colspan="7" class="text-center py-4">Loading offers...</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -176,19 +167,17 @@
   </main>
 
   <!-- View Offer Modal -->
-  <div class="modal fade" id="viewOfferModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal fade" id="viewOfferModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Offer Details</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body" id="offerDetailsContent">
-          Loading...
-        </div>
+        <div class="modal-body" id="offerDetailsContent"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="editOfferBtn" style="display:none;">Edit Offer</button>
+          <button type="button" class="btn bg-gradient-warning" id="editOfferBtn" style="display:none;">Edit Offer</button>
         </div>
       </div>
     </div>
@@ -199,46 +188,43 @@
   <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
   <script src="../assets/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
-  
   <script src="../assets/js/api.js"></script>
   <script src="../assets/js/auth.js"></script>
   <script src="../assets/js/utils.js"></script>
-  
-  <script>
-    // Check authentication
-    if (!auth.requireClient()) {
-      window.location.href = '../index.html';
-    }
 
+  <script>
     let allOffers = [];
     let currentFilter = 'all';
 
-    // Load all offers
+    async function initPage() {
+      // Restore session from HttpOnly refresh cookie
+      const user = await auth.restoreSession();
+      if (!user) { window.location.href = '../index.html'; return; }
+      if (user.role !== 'client') { auth.redirectToDashboard(); return; }
+      auth.initUserDisplay();
+      loadOffers();
+    }
+
     async function loadOffers() {
       try {
         allOffers = await api.getMyOffers();
         displayOffers(allOffers);
       } catch (error) {
         showToast('Failed to load offers', 'error');
-        document.getElementById('offersTableBody').innerHTML = 
+        document.getElementById('offersTableBody').innerHTML =
           '<tr><td colspan="7" class="text-center py-4 text-danger">Failed to load offers</td></tr>';
       }
     }
 
-    // Display offers in table
     function displayOffers(offers) {
       const tbody = document.getElementById('offersTableBody');
-      
       if (offers.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No offers found</td></tr>';
         return;
       }
-      
       tbody.innerHTML = offers.map(offer => `
         <tr data-status="${offer.status}">
-          <td>
-            <p class="text-xs font-weight-bold mb-0 ps-3">#${offer.id}</p>
-          </td>
+          <td><p class="text-xs font-weight-bold mb-0 ps-3">#${offer.id}</p></td>
           <td>
             <div class="d-flex px-2 py-1">
               <div class="d-flex flex-column justify-content-center">
@@ -273,19 +259,16 @@
             ${offer.status === 'pending' ? `
               <a href="edit-offer.html?id=${offer.id}" class="btn btn-link text-warning mb-0 px-3">
                 <i class="fas fa-edit text-xs"></i>
-              </a>
-            ` : ''}
+              </a>` : ''}
           </td>
         </tr>
       `).join('');
     }
 
-    // View offer details
     async function viewOffer(offerId) {
       try {
         const offer = await api.getOffer(offerId);
-        
-        const content = `
+        document.getElementById('offerDetailsContent').innerHTML = `
           <div class="row">
             <div class="col-md-6">
               <p><strong>Offer ID:</strong> #${offer.id}</p>
@@ -311,19 +294,13 @@
           </div>
           ${offer.driver_first_name ? `
             <hr>
-            <div class="row">
-              <div class="col-12">
-                <h6>Driver Information</h6>
-                <p><strong>Driver:</strong> ${offer.driver_first_name}</p>
-                <p><strong>Vehicle:</strong> ${offer.vehicle_color} ${offer.vehicle_make} ${offer.vehicle_model}</p>
-                <p><strong>Plate Number:</strong> ${offer.vehicle_plate}</p>
-              </div>
-            </div>
-          ` : ''}
+            <div class="row"><div class="col-12">
+              <h6>Driver Information</h6>
+              <p><strong>Driver:</strong> ${offer.driver_first_name}</p>
+              <p><strong>Vehicle:</strong> ${offer.vehicle_color} ${offer.vehicle_make} ${offer.vehicle_model}</p>
+              <p><strong>Plate Number:</strong> ${offer.vehicle_plate}</p>
+            </div></div>` : ''}
         `;
-        
-        document.getElementById('offerDetailsContent').innerHTML = content;
-        
         const editBtn = document.getElementById('editOfferBtn');
         if (offer.status === 'pending') {
           editBtn.style.display = 'inline-block';
@@ -331,35 +308,25 @@
         } else {
           editBtn.style.display = 'none';
         }
-        
         new bootstrap.Modal(document.getElementById('viewOfferModal')).show();
-        
       } catch (error) {
         showToast('Failed to load offer details', 'error');
       }
     }
 
-    // Filter offers by status
     document.querySelectorAll('[data-filter]').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        // Update active button
         document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
-        
-        // Filter offers
         currentFilter = e.target.dataset.filter;
-        const filtered = currentFilter === 'all' 
-          ? allOffers 
-          : allOffers.filter(o => o.status === currentFilter);
-        
+        const filtered = currentFilter === 'all' ? allOffers : allOffers.filter(o => o.status === currentFilter);
         displayOffers(filtered);
       });
     });
 
-    // Search functionality
     document.getElementById('searchInput').addEventListener('input', debounce((e) => {
       const searchTerm = e.target.value.toLowerCase();
-      const filtered = allOffers.filter(offer => 
+      const filtered = allOffers.filter(offer =>
         offer.description.toLowerCase().includes(searchTerm) ||
         offer.pickup_address.toLowerCase().includes(searchTerm) ||
         offer.dropoff_address.toLowerCase().includes(searchTerm) ||
@@ -368,9 +335,7 @@
       displayOffers(filtered);
     }, 300));
 
-    // Load offers on page load
-    loadOffers();
+    initPage();
   </script>
 </body>
-
 </html>

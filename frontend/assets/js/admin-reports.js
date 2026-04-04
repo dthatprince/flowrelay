@@ -4,14 +4,14 @@
 let currentReportData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Require admin authentication
-  if (!auth.requireAdmin()) return;
+  // Session is already restored by the inline script in reports.html
+  // before this file loads — no auth check needed here.
 
   // Set default dates (last 30 days)
   const today = new Date();
   const thirtyDaysAgo = new Date(today);
   thirtyDaysAgo.setDate(today.getDate() - 30);
-  
+
   document.getElementById('endDate').valueAsDate = today;
   document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
 
@@ -28,7 +28,6 @@ async function generateReport() {
   const endDate = document.getElementById('endDate').value;
   const status = document.getElementById('statusFilter').value;
 
-  // Validate dates
   if (!startDate || !endDate) {
     showToast('Please select both start and end dates', 'error');
     return;
@@ -39,24 +38,18 @@ async function generateReport() {
     return;
   }
 
-  // Show loading state
   const btn = document.getElementById('generateReportBtn');
   const originalText = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
 
   try {
-    // Fetch report data from API
     const reportData = await api.getTripsReport(startDate, endDate, status);
     currentReportData = reportData;
 
-    // Update statistics
     updateStatistics(reportData.summary);
-
-    // Display trips table
     displayTripsTable(reportData.trips);
 
-    // Show statistics and report sections
     document.getElementById('statisticsRow').style.display = 'flex';
     document.getElementById('reportRow').style.display = 'block';
 
@@ -105,21 +98,17 @@ function displayTripsTable(trips) {
       'completed': { class: 'success', icon: 'check-circle' },
       'cancelled': { class: 'danger', icon: 'times-circle' }
     };
-    
+
     const config = statusConfig[trip.status] || statusConfig['pending'];
-    
+
     return `
       <tr>
-        <td>
-          <p class="text-xs font-weight-bold mb-0 ps-3">#${trip.id}</p>
-        </td>
+        <td><p class="text-xs font-weight-bold mb-0 ps-3">#${trip.id}</p></td>
         <td>
           <p class="text-xs font-weight-bold mb-0">${trip.pickup_date}</p>
           <p class="text-xs text-secondary mb-0">${trip.pickup_time}</p>
         </td>
-        <td>
-          <p class="text-xs font-weight-bold mb-0">${truncate(trip.client_name, 25)}</p>
-        </td>
+        <td><p class="text-xs font-weight-bold mb-0">${truncate(trip.client_name, 25)}</p></td>
         <td>
           <p class="text-xs font-weight-bold mb-0">${truncate(trip.driver_name, 25)}</p>
           <p class="text-xs text-secondary mb-0">${truncate(trip.vehicle_info, 30)}</p>
@@ -150,7 +139,6 @@ function exportToExcel() {
   }
 
   try {
-    // Prepare data for Excel
     const excelData = currentReportData.trips.map(trip => ({
       'Trip ID': trip.id,
       'Date': trip.pickup_date,
@@ -165,104 +153,26 @@ function exportToExcel() {
       'Description': trip.description
     }));
 
-    // Add summary at the end
     excelData.push({});
-    excelData.push({
-      'Trip ID': 'SUMMARY',
-      'Date': '',
-      'Time': '',
-      'Client': '',
-      'Driver': '',
-      'Vehicle': '',
-      'Pickup Address': '',
-      'Dropoff Address': '',
-      'Mileage (mi)': '',
-      'Status': '',
-      'Description': ''
-    });
-    excelData.push({
-      'Trip ID': 'Total Trips',
-      'Date': currentReportData.summary.total_trips,
-      'Time': '',
-      'Client': '',
-      'Driver': '',
-      'Vehicle': '',
-      'Pickup Address': '',
-      'Dropoff Address': '',
-      'Mileage (mi)': '',
-      'Status': '',
-      'Description': ''
-    });
-    excelData.push({
-      'Trip ID': 'Total Mileage',
-      'Date': currentReportData.summary.total_mileage + ' mi',
-      'Time': '',
-      'Client': '',
-      'Driver': '',
-      'Vehicle': '',
-      'Pickup Address': '',
-      'Dropoff Address': '',
-      'Mileage (mi)': '',
-      'Status': '',
-      'Description': ''
-    });
-    excelData.push({
-      'Trip ID': 'Completed Trips',
-      'Date': currentReportData.summary.completed_trips,
-      'Time': '',
-      'Client': '',
-      'Driver': '',
-      'Vehicle': '',
-      'Pickup Address': '',
-      'Dropoff Address': '',
-      'Mileage (mi)': '',
-      'Status': '',
-      'Description': ''
-    });
-    excelData.push({
-      'Trip ID': 'Completion Rate',
-      'Date': currentReportData.summary.completion_rate + '%',
-      'Time': '',
-      'Client': '',
-      'Driver': '',
-      'Vehicle': '',
-      'Pickup Address': '',
-      'Dropoff Address': '',
-      'Mileage (mi)': '',
-      'Status': '',
-      'Description': ''
-    });
+    excelData.push({ 'Trip ID': 'SUMMARY' });
+    excelData.push({ 'Trip ID': 'Total Trips', 'Date': currentReportData.summary.total_trips });
+    excelData.push({ 'Trip ID': 'Total Mileage', 'Date': currentReportData.summary.total_mileage + ' mi' });
+    excelData.push({ 'Trip ID': 'Completed Trips', 'Date': currentReportData.summary.completed_trips });
+    excelData.push({ 'Trip ID': 'Completion Rate', 'Date': currentReportData.summary.completion_rate + '%' });
 
-    // Create worksheet
     const ws = XLSX.utils.json_to_sheet(excelData);
-
-    // Set column widths
     ws['!cols'] = [
-      { wch: 10 },  // Trip ID
-      { wch: 12 },  // Date
-      { wch: 10 },  // Time
-      { wch: 25 },  // Client
-      { wch: 25 },  // Driver
-      { wch: 30 },  // Vehicle
-      { wch: 35 },  // Pickup
-      { wch: 35 },  // Dropoff
-      { wch: 12 },  // Mileage
-      { wch: 15 },  // Status
-      { wch: 40 }   // Description
+      { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 25 },
+      { wch: 30 }, { wch: 35 }, { wch: 35 }, { wch: 12 }, { wch: 15 }, { wch: 40 }
     ];
 
-    // Create workbook
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Trips Report');
 
-    // Generate filename
     const startDate = currentReportData.filters.start_date || 'all';
     const endDate = currentReportData.filters.end_date || 'all';
-    const filename = `trips_report_${startDate}_to_${endDate}.xlsx`;
+    XLSX.writeFile(wb, `trips_report_${startDate}_to_${endDate}.xlsx`);
 
-    // Download
-    XLSX.writeFile(wb, filename);
-    
     showToast('Excel file exported successfully', 'success');
   } catch (error) {
     console.error('Error exporting to Excel:', error);
@@ -280,34 +190,28 @@ function exportToPDF() {
 
   try {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+    const doc = new jsPDF('l', 'mm', 'a4');
 
-    // Add title
     doc.setFontSize(18);
     doc.setTextColor(44, 62, 80);
     doc.text('Flow Relay - Trips Report', 15, 15);
 
-    // Add date range
     doc.setFontSize(10);
     doc.setTextColor(100);
-    const dateRange = `Report Period: ${currentReportData.filters.start_date || 'All'} to ${currentReportData.filters.end_date || 'All'}`;
-    doc.text(dateRange, 15, 22);
+    doc.text(`Report Period: ${currentReportData.filters.start_date || 'All'} to ${currentReportData.filters.end_date || 'All'}`, 15, 22);
 
-    // Add summary statistics
     doc.setFontSize(12);
     doc.setTextColor(44, 62, 80);
     doc.text('Summary Statistics', 15, 32);
-    
+
     doc.setFontSize(9);
     doc.setTextColor(100);
-    const summaryY = 38;
-    doc.text(`Total Trips: ${currentReportData.summary.total_trips}`, 15, summaryY);
-    doc.text(`Total Mileage: ${currentReportData.summary.total_mileage} mi`, 70, summaryY);
-    doc.text(`Completed: ${currentReportData.summary.completed_trips}`, 130, summaryY);
-    doc.text(`Completion Rate: ${currentReportData.summary.completion_rate}%`, 180, summaryY);
-    doc.text(`Average Mileage: ${currentReportData.summary.average_mileage} mi`, 230, summaryY);
+    doc.text(`Total Trips: ${currentReportData.summary.total_trips}`, 15, 38);
+    doc.text(`Total Mileage: ${currentReportData.summary.total_mileage} mi`, 70, 38);
+    doc.text(`Completed: ${currentReportData.summary.completed_trips}`, 130, 38);
+    doc.text(`Completion Rate: ${currentReportData.summary.completion_rate}%`, 180, 38);
+    doc.text(`Average Mileage: ${currentReportData.summary.average_mileage} mi`, 230, 38);
 
-    // Prepare table data
     const tableData = currentReportData.trips.map(trip => [
       `#${trip.id}`,
       trip.pickup_date,
@@ -319,36 +223,20 @@ function exportToPDF() {
       trip.status.replace('_', ' ').toUpperCase()
     ]);
 
-    // Add table
     doc.autoTable({
       head: [['ID', 'Date', 'Client', 'Driver', 'Pickup', 'Dropoff', 'Mileage', 'Status']],
       body: tableData,
       startY: 45,
-      styles: {
-        fontSize: 8,
-        cellPadding: 2
-      },
-      headStyles: {
-        fillColor: [66, 139, 202],
-        textColor: 255,
-        fontStyle: 'bold'
-      },
-      alternateRowStyles: {
-        fillColor: [245, 245, 245]
-      },
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [66, 139, 202], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
       columnStyles: {
-        0: { cellWidth: 15 },  // ID
-        1: { cellWidth: 22 },  // Date
-        2: { cellWidth: 35 },  // Client
-        3: { cellWidth: 35 },  // Driver
-        4: { cellWidth: 45 },  // Pickup
-        5: { cellWidth: 45 },  // Dropoff
-        6: { cellWidth: 20 },  // Mileage
-        7: { cellWidth: 25 }   // Status
+        0: { cellWidth: 15 }, 1: { cellWidth: 22 }, 2: { cellWidth: 35 },
+        3: { cellWidth: 35 }, 4: { cellWidth: 45 }, 5: { cellWidth: 45 },
+        6: { cellWidth: 20 }, 7: { cellWidth: 25 }
       }
     });
 
-    // Add footer
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -367,14 +255,10 @@ function exportToPDF() {
       );
     }
 
-    // Generate filename
     const startDate = currentReportData.filters.start_date || 'all';
     const endDate = currentReportData.filters.end_date || 'all';
-    const filename = `trips_report_${startDate}_to_${endDate}.pdf`;
+    doc.save(`trips_report_${startDate}_to_${endDate}.pdf`);
 
-    // Download
-    doc.save(filename);
-    
     showToast('PDF exported successfully', 'success');
   } catch (error) {
     console.error('Error exporting to PDF:', error);

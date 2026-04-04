@@ -1,49 +1,47 @@
-// Authentication Manager with Approval System
+// Authentication Manager — tokens stored in memory only (XSS-safe)
 class AuthManager {
     constructor() {
-        this.tokenKey = 'access_token';
-        this.userKey = 'current_user';
+        this._token = null;   //  Never written to localStorage
+        this._user = null;    //  Never written to localStorage
     }
 
     setToken(token) {
-        localStorage.setItem(this.tokenKey, token);
+        this._token = token;
+        api.setToken(token); // Keep api.js in sync
     }
 
     getToken() {
-        return localStorage.getItem(this.tokenKey);
+        return this._token;
     }
 
     removeToken() {
-        localStorage.removeItem(this.tokenKey);
-        localStorage.removeItem(this.userKey);
+        this._token = null;
+        this._user = null;
+        api.clearToken();
     }
 
     setUser(user) {
-        localStorage.setItem(this.userKey, JSON.stringify(user));
+        this._user = user;
     }
 
     getUser() {
-        const user = localStorage.getItem(this.userKey);
-        return user ? JSON.parse(user) : null;
+        return this._user;
     }
 
     isAuthenticated() {
-        return !!this.getToken();
+        return !!this._token;
     }
 
     isAdmin() {
-        const user = this.getUser();
-        return user && user.role === 'admin';
+        return this._user && this._user.role === 'admin';
     }
 
     isClient() {
-        const user = this.getUser();
-        return user && user.role === 'client';
+        return this._user && this._user.role === 'client';
     }
 
     isDriver() {
-        const user = this.getUser();
-        return user && user.role === 'driver';
+        return this._user && this._user.role === 'driver';
     }
 
     async login(email, password) {
@@ -75,6 +73,25 @@ class AuthManager {
         }
     }
 
+    //  Restores session on page load using HttpOnly refresh cookie.
+    // Call this at the top of every protected page instead of requireAuth().
+    // Returns the user object on success, or null if not authenticated.
+    async restoreSession() {
+        try {
+            const data = await api.request('/auth/refresh', {
+                method: 'POST',
+                credentials: 'include', // sends the HttpOnly refresh cookie
+                auth: false,
+            });
+            this.setToken(data.access_token);
+            const user = await api.getCurrentUser();
+            this.setUser(user);
+            return user;
+        } catch {
+            return null;
+        }
+    }
+
     checkApprovalStatus(user) {
         if (!user) return false;
         return user.account_status === 'approved' ? 'approved' : user.account_status || 'pending';
@@ -87,19 +104,19 @@ class AuthManager {
             'rejected': { class: 'danger', icon: 'times-circle', text: 'Rejected' },
             'suspended': { class: 'danger', icon: 'ban', text: 'Suspended' }
         };
-        
+
         const badge = badges[status] || badges['pending'];
-        
+
         let html = `<span class="badge badge-sm bg-gradient-${badge.class}">
             <i class="fas fa-${badge.icon}"></i> ${badge.text}
         </span>`;
-        
+
         if (notes) {
             html += `<small class="text-muted ms-2" title="${notes}">
                 <i class="fas fa-info-circle"></i>
             </small>`;
         }
-        
+
         return html;
     }
 
@@ -118,8 +135,16 @@ class AuthManager {
         }
     }
 
-    logout() {
+    async logout() {
         this.removeToken();
+        //  Ask server to clear the HttpOnly refresh cookie
+        try {
+            await api.request('/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+                auth: false,
+            });
+        } catch { /* ignore errors — we're logging out regardless */ }
         window.location.href = '../index.html';
     }
 
@@ -134,6 +159,7 @@ class AuthManager {
         else if (user.role === 'driver') window.location.href = './driver/dashboard.html';
     }
 
+    // Kept for backward compatibility — prefer restoreSession() on protected pages
     requireAuth() {
         if (!this.isAuthenticated()) {
             window.location.href = '/index.html';

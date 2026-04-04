@@ -5,33 +5,36 @@ const API_BASE_URL = 'https://flowrelay.onrender.com';
 class API {
     constructor() {
         this.baseURL = API_BASE_URL;
+        this._accessToken = null; // Token stored in memory only — never localStorage
     }
 
-    // Get auth token from localStorage
-    getToken() {
-        return localStorage.getItem('access_token');
+    // Set token in memory (called by AuthManager after login or session restore)
+    setToken(token) {
+        this._accessToken = token;
     }
 
-    // Set auth headers
+    // Clear token from memory (called on logout)
+    clearToken() {
+        this._accessToken = null;
+    }
+
+    // Set auth headers using in-memory token
     getHeaders(includeAuth = true) {
         const headers = {
             'Content-Type': 'application/json',
         };
-        
-        if (includeAuth) {
-            const token = this.getToken();
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
+
+        if (includeAuth && this._accessToken) {
+            headers['Authorization'] = `Bearer ${this._accessToken}`;
         }
-        
+
         return headers;
     }
 
     // Generic request handler
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
-        
+
         try {
             const response = await fetch(url, {
                 ...options,
@@ -41,7 +44,7 @@ class API {
             // Handle different response types
             const contentType = response.headers.get('content-type');
             let data;
-            
+
             if (contentType && contentType.includes('application/json')) {
                 data = await response.json();
             } else {
@@ -95,7 +98,6 @@ class API {
             method: 'GET',
         });
     }
-
 
     // APPROVE USERS ENDPOINT
     async getPendingUsers() {
@@ -280,7 +282,6 @@ class API {
         });
     }
 
-    // Updated: Now changes approval status instead of operational status
     async adminUpdateDriverApprovalStatus(driverId, status) {
         return this.request(`/admin/drivers/${driverId}/status?status=${status}`, {
             method: 'PUT',
@@ -299,7 +300,7 @@ class API {
         if (startDate) params.append('start_date', startDate);
         if (endDate) params.append('end_date', endDate);
         if (status) params.append('status', status);
-        
+
         return this.request(`/admin/reports/trips?${params.toString()}`, {
             method: 'GET',
         });

@@ -1,35 +1,36 @@
 import os
 from dotenv import load_dotenv
-from fastapi_mail import ConnectionConfig
 
-# Load .env file
-load_dotenv()  
+# Load environment variables
+load_dotenv()
 
-# Application environment "dev" or "prod"
-ENV = os.getenv("ENV", "dev") 
+# App environment
+ENV = os.getenv("ENV", "dev")
 
-# Security & JWT
+# Security
 SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
-# Database configuration
+# Short-lived access token (15 min) — lives in JS memory only
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 15))
+
+# Long-lived refresh token (7 days) — stored in HttpOnly cookie only
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
+
+# Database
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-'''
-conf = ConnectionConfig(
-    MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
-    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
-    MAIL_FROM=os.getenv("MAIL_FROM"),
-    MAIL_HOST=os.getenv("MAIL_HOST"),
-    MAIL_PORT=int(os.getenv("MAIL_PORT", 465)),
-    MAIL_USE_TLS=os.getenv("MAIL_USE_TLS", "False") == "True",
-    MAIL_SSL_TLS=os.getenv("MAIL_USE_SSL", "True") == "True",
-    USE_CREDENTIALS=True,
-)
-'''
+# Base URL
+BASE_URL = os.getenv("BASE_URL")
 
-# Promailer config
-PROMAILER_API_KEY = os.getenv("PROMAILER_API_KEY")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@promailer.dev")
-BASE_URL=os.getenv("BASE_URL")
+# Mail settings
+MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+MAIL_FROM = os.getenv("MAIL_FROM")
+
+MAIL_PORT = int(os.getenv("MAIL_PORT", 465))
+MAIL_SERVER = os.getenv("MAIL_SERVER")
+
+MAIL_STARTTLS = os.getenv("MAIL_STARTTLS", "False") == "True"
+MAIL_SSL_TLS = os.getenv("MAIL_SSL_TLS", "True") == "True"
+USE_CREDENTIALS = os.getenv("USE_CREDENTIALS", "True") == "True"

@@ -9,12 +9,8 @@ let driverStatus = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Check authentication
-  if (!auth.isAuthenticated() || auth.getUser().role !== 'driver') {
-    window.location.href = '../index.html';
-    return;
-  }
-
+  // Session already restored by the inline script in dashboard.html
+  // before this file loads — no auth check needed here.
   await loadDashboard();
 });
 
