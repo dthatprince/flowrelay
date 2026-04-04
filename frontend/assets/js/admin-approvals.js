@@ -10,8 +10,8 @@ let statistics = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Require admin authentication
-  if (!auth.requireAdmin()) return;
+  // Session is already restored by the inline script in approvals.html
+  // before this file loads — no auth check needed here.
 
   // Setup event listeners
   setupTabs();
@@ -44,12 +44,10 @@ function setupRefreshButton() {
 function switchTab(tab) {
   currentTab = tab;
 
-  // Update button states
   document.querySelectorAll('[data-tab]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tab);
   });
 
-  // Update tab content visibility
   document.querySelectorAll('.tab-content').forEach(content => {
     content.classList.remove('active');
   });
@@ -59,7 +57,6 @@ function switchTab(tab) {
     activeContent.classList.add('active');
   }
 
-  // Load tab data
   loadCurrentTab();
 }
 
@@ -75,34 +72,31 @@ async function loadCurrentTab() {
 
 async function loadStatistics() {
   try {
-    // Load all data to calculate statistics
     const [allUsers, allDrivers] = await Promise.all([
       api.getAllUsers(),
       api.getAllDrivers()
     ]);
 
-    // Calculate statistics
-    statistics.pendingUsers = allUsers.filter(u => 
+    statistics.pendingUsers = allUsers.filter(u =>
       u.account_status === 'pending' && u.is_verified === 'true'
     ).length;
-    
-    statistics.pendingDrivers = allDrivers.filter(d => 
+
+    statistics.pendingDrivers = allDrivers.filter(d =>
       d.driver_status === 'pending'
     ).length;
-    
+
     const approvedUsers = allUsers.filter(u => u.account_status === 'approved').length;
     const approvedDrivers = allDrivers.filter(d => d.driver_status === 'approved').length;
     statistics.approved = approvedUsers + approvedDrivers;
-    
-    const rejectedUsers = allUsers.filter(u => 
+
+    const rejectedUsers = allUsers.filter(u =>
       u.account_status === 'rejected' || u.account_status === 'suspended'
     ).length;
-    const rejectedDrivers = allDrivers.filter(d => 
+    const rejectedDrivers = allDrivers.filter(d =>
       d.driver_status === 'rejected' || d.driver_status === 'suspended'
     ).length;
     statistics.rejected = rejectedUsers + rejectedDrivers;
 
-    // Update UI
     updateStatisticsDisplay();
   } catch (error) {
     console.error('Error loading statistics:', error);
@@ -144,11 +138,11 @@ async function loadPendingUsers() {
 }
 
 function createUserCard(user) {
-  const verifiedBadge = user.is_verified === 'true' 
+  const verifiedBadge = user.is_verified === 'true'
     ? '<span class="badge badge-sm bg-gradient-success"><i class="fas fa-check"></i> Verified</span>'
     : '<span class="badge badge-sm bg-gradient-warning"><i class="fas fa-clock"></i> Not Verified</span>';
 
-  const roleBadge = user.role === 'client' 
+  const roleBadge = user.role === 'client'
     ? '<span class="badge badge-sm bg-gradient-primary">CLIENT</span>'
     : '<span class="badge badge-sm bg-gradient-info">DRIVER</span>';
 
@@ -190,7 +184,6 @@ function createUserCard(user) {
             </div>
           </div>
         </div>
-        
         <div class="d-flex justify-content-end gap-2 mt-3">
           <button class="btn btn-sm bg-gradient-success" onclick="approveUser(${user.id})">
             <i class="fas fa-check me-1"></i> Approve
@@ -285,7 +278,6 @@ function createDriverCard(driver) {
             </div>
           </div>
         </div>
-        
         <div class="d-flex justify-content-end gap-2 mt-3">
           <button class="btn btn-sm bg-gradient-success" onclick="approveDriver(${driver.id})">
             <i class="fas fa-check me-1"></i> Approve Driver
@@ -303,42 +295,30 @@ function createDriverCard(driver) {
 
 async function approveUser(userId) {
   const notes = prompt('Add approval notes (optional):');
-  if (notes === null) return; // User cancelled
-
+  if (notes === null) return;
   if (!confirm('Are you sure you want to approve this user account?')) return;
 
   try {
-    await api.approveUser(userId, {
-      status: 'approved',
-      notes: notes || null
-    });
-
+    await api.approveUser(userId, { status: 'approved', notes: notes || null });
     showToast('User approved successfully!', 'success');
     await loadStatistics();
     await loadPendingUsers();
   } catch (error) {
-    console.error('Error approving user:', error);
     showToast('Failed to approve user: ' + error.message, 'error');
   }
 }
 
 async function rejectUser(userId) {
   const notes = prompt('Add rejection reason (recommended):');
-  if (notes === null) return; // User cancelled
-
+  if (notes === null) return;
   if (!confirm('Are you sure you want to reject this user account?')) return;
 
   try {
-    await api.approveUser(userId, {
-      status: 'rejected',
-      notes: notes || null
-    });
-
+    await api.approveUser(userId, { status: 'rejected', notes: notes || null });
     showToast('User rejected', 'success');
     await loadStatistics();
     await loadPendingUsers();
   } catch (error) {
-    console.error('Error rejecting user:', error);
     showToast('Failed to reject user: ' + error.message, 'error');
   }
 }
@@ -349,20 +329,14 @@ async function suspendUser(userId) {
     showToast('Suspension reason is required', 'error');
     return;
   }
-
   if (!confirm('Are you sure you want to suspend this user account?')) return;
 
   try {
-    await api.approveUser(userId, {
-      status: 'suspended',
-      notes: notes
-    });
-
+    await api.approveUser(userId, { status: 'suspended', notes });
     showToast('User suspended', 'success');
     await loadStatistics();
     await loadPendingUsers();
   } catch (error) {
-    console.error('Error suspending user:', error);
     showToast('Failed to suspend user: ' + error.message, 'error');
   }
 }
@@ -371,42 +345,30 @@ async function suspendUser(userId) {
 
 async function approveDriver(driverId) {
   const notes = prompt('Add approval notes (e.g., "Documents verified"):');
-  if (notes === null) return; // User cancelled
-
+  if (notes === null) return;
   if (!confirm('Are you sure you want to approve this driver profile?')) return;
 
   try {
-    await api.approveDriver(driverId, {
-      status: 'approved',
-      notes: notes || null
-    });
-
+    await api.approveDriver(driverId, { status: 'approved', notes: notes || null });
     showToast('Driver approved successfully!', 'success');
     await loadStatistics();
     await loadPendingDrivers();
   } catch (error) {
-    console.error('Error approving driver:', error);
     showToast('Failed to approve driver: ' + error.message, 'error');
   }
 }
 
 async function rejectDriver(driverId) {
   const notes = prompt('Add rejection reason (e.g., "Invalid license"):');
-  if (notes === null) return; // User cancelled
-
+  if (notes === null) return;
   if (!confirm('Are you sure you want to reject this driver profile?')) return;
 
   try {
-    await api.approveDriver(driverId, {
-      status: 'rejected',
-      notes: notes || null
-    });
-
+    await api.approveDriver(driverId, { status: 'rejected', notes: notes || null });
     showToast('Driver rejected', 'success');
     await loadStatistics();
     await loadPendingDrivers();
   } catch (error) {
-    console.error('Error rejecting driver:', error);
     showToast('Failed to reject driver: ' + error.message, 'error');
   }
 }

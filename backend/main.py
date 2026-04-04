@@ -10,22 +10,22 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Flow Relay API", version="1.0.0")
 
-# Configure CORS - MUST be added BEFORE routers
+# CORS — allow_credentials=True is required for HttpOnly cookies to be sent/received.
+# Note: allow_origins cannot be ["*"] when allow_credentials=True — list origins explicitly.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://flowrelay.onrender.com",
-        "https://dthatprince.github.io",  # Your GitHub Pages
+        "https://dthatprince.github.io",
         "http://localhost:3000",
         "http://localhost:8000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
-        "*"  # Allow all origins (for development/testing - remove in production)
     ],
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],  # Allow all headers
-    expose_headers=["*"]  # Expose all headers
+    allow_credentials=True,   # Required for cookies to work cross-origin
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Include routers AFTER CORS middleware

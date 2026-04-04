@@ -82,6 +82,14 @@
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account</h6>
         </li>
         <li class="nav-item">
+          <a class="nav-link btn" href="../change-password.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-key text-primary"></i>
+            </div>
+            <span class="nav-link-text ms-1">Change Password</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link logout-btn" href="#">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-sign-out-alt text-danger"></i>
@@ -240,17 +248,46 @@
   <script src="../assets/js/utils.js"></script>
   
   <script>
-    // Check authentication
-    if (!auth.requireClient()) {
-      window.location.href = '../index.html';
+    async function initPage() {
+      // Restore session from HttpOnly refresh cookie
+      const user = await auth.restoreSession();
+      if (!user) {
+        window.location.href = '../index.html';
+        return;
+      }
+      if (user.role !== 'client') {
+        auth.redirectToDashboard();
+        return;
+      }
+
+      // Update UI with user info
+      auth.initUserDisplay();
+
+      // Check and display approval status
+      const status = auth.checkApprovalStatus(user);
+      if (status === 'pending') {
+        auth.showApprovalMessage(
+          'Your account is pending admin approval. You can view offers but cannot create new ones until approved.',
+          'warning'
+        );
+        const createBtn = document.querySelector('a[href="create-offer.html"]');
+        if (createBtn) {
+          createBtn.style.pointerEvents = 'none';
+          createBtn.style.opacity = '0.5';
+          createBtn.title = 'Account must be approved to create offers';
+        }
+      } else if (status !== 'approved') {
+        auth.showApprovalMessage('Your account status: ' + status + '. Please contact support.', 'danger');
+      }
+
+      // Load dashboard data
+      loadDashboard();
     }
 
-    // Load dashboard data
     async function loadDashboard() {
       try {
         const offers = await api.getMyOffers();
         
-        // Calculate statistics
         const stats = {
           total: offers.length,
           pending: offers.filter(o => o.status === 'pending').length,
@@ -258,15 +295,12 @@
           completed: offers.filter(o => o.status === 'completed').length
         };
         
-        // Update statistics
         document.getElementById('totalOffers').textContent = stats.total;
         document.getElementById('pendingOffers').textContent = stats.pending;
         document.getElementById('inProgressOffers').textContent = stats.inProgress;
         document.getElementById('completedOffers').textContent = stats.completed;
         
-        // Display recent offers (last 5)
-        const recentOffers = offers.slice(0, 5);
-        displayOffers(recentOffers);
+        displayOffers(offers.slice(0, 5));
         
       } catch (error) {
         showToast('Failed to load dashboard data', 'error');
@@ -307,33 +341,7 @@
       `).join('');
     }
 
-    // Load dashboard on page load
-    loadDashboard();
-  </script>
-  <script>
-    // Check and display approval status
-    const user = auth.getUser();
-    if (user) {
-      const status = auth.checkApprovalStatus(user);
-      if (status === 'pending') {
-        auth.showApprovalMessage(
-          'Your account is pending admin approval. You can view offers but cannot create new ones until approved.',
-          'warning'
-        );
-        // Disable create offer button
-        const createBtn = document.querySelector('a[href="create-offer.html"]');
-        if (createBtn) {
-          createBtn.style.pointerEvents = 'none';
-          createBtn.style.opacity = '0.5';
-          createBtn.title = 'Account must be approved to create offers';
-        }
-      } else if (status !== 'approved') {
-        auth.showApprovalMessage(
-          'Your account status: ' + status + '. Please contact support.',
-          'danger'
-        );
-      }
-    }
+    initPage();
   </script>
 </body>
 

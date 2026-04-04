@@ -73,6 +73,14 @@
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account</h6>
         </li>
         <li class="nav-item">
+          <a class="nav-link btn" href="../change-password.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="fas fa-key text-primary"></i>
+            </div>
+            <span class="nav-link-text ms-1">Change Password</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link logout-btn" href="#">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-sign-out-alt text-danger"></i>
@@ -249,11 +257,16 @@
   <script src="../assets/js/utils.js"></script>
   
   <script>
-    if (!auth.isAuthenticated() || auth.getUser().role !== 'driver') {
-      window.location.href = '../index.html';
-    }
-
     let allHistory = [];
+
+    async function initPage() {
+      // Restore session from HttpOnly refresh cookie
+      const user = await auth.restoreSession();
+      if (!user) { window.location.href = '../index.html'; return; }
+      if (user.role !== 'driver') { auth.redirectToDashboard(); return; }
+      auth.initUserDisplay();
+      loadHistory();
+    }
 
     async function loadHistory() {
       try {
@@ -422,7 +435,7 @@
       showToast('History exported successfully!', 'success');
     }
 
-    loadHistory();
+    initPage();
   </script>
 </body>
 

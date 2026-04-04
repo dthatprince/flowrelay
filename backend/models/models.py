@@ -37,6 +37,10 @@ class User(Base):
     is_verified = Column(String, default="false")
     verification_token = Column(String, nullable=True)
     
+    # Password reset fields
+    password_reset_token = Column(String, nullable=True)
+    password_reset_expires = Column(DateTime, nullable=True)
+
     # Account approval fields
     account_status = Column(SQLEnum(AccountStatus), default=AccountStatus.PENDING)
     approval_notes = Column(String, nullable=True)
