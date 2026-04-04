@@ -38,6 +38,7 @@ class API {
         try {
             const response = await fetch(url, {
                 ...options,
+                credentials: 'include', // Include cookies for session management
                 headers: options.headers || this.getHeaders(options.auth !== false),
             });
 
