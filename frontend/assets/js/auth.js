@@ -1,8 +1,8 @@
 // Authentication Manager — tokens stored in memory only (XSS-safe)
 class AuthManager {
     constructor() {
-        this._token = null;   // ✅ Never written to localStorage
-        this._user = null;    // ✅ Never written to localStorage
+        this._token = null;   //  Never written to localStorage
+        this._user = null;    //  Never written to localStorage
     }
 
     setToken(token) {
@@ -73,7 +73,7 @@ class AuthManager {
         }
     }
 
-    // ✅ Restores session on page load using HttpOnly refresh cookie.
+    //  Restores session on page load using HttpOnly refresh cookie.
     // Call this at the top of every protected page instead of requireAuth().
     // Returns the user object on success, or null if not authenticated.
     async restoreSession() {
@@ -137,7 +137,7 @@ class AuthManager {
 
     async logout() {
         this.removeToken();
-        // ✅ Ask server to clear the HttpOnly refresh cookie
+        //  Ask server to clear the HttpOnly refresh cookie
         try {
             await api.request('/auth/logout', {
                 method: 'POST',

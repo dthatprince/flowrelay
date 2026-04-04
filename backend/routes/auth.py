@@ -76,13 +76,13 @@ def login(
     if user.is_verified != "true":
         raise HTTPException(status_code=400, detail="Please verify your email first")
 
-    # ✅ Issue short-lived access token — returned in JSON, stored in JS memory
+    #  Issue short-lived access token — returned in JSON, stored in JS memory
     access_token = create_access_token(
         data={"sub": user.email},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
 
-    # ✅ Issue long-lived refresh token — stored in HttpOnly cookie, JS never sees it
+    #  Issue long-lived refresh token — stored in HttpOnly cookie, JS never sees it
     refresh_token = create_refresh_token(
         data={"sub": user.email},
         expires_delta=timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
@@ -108,7 +108,7 @@ def refresh_access_token(
     db: Session = Depends(get_db)
 ):
     """
-    ✅ Called on every page load by the frontend to restore the session.
+     Called on every page load by the frontend to restore the session.
     Reads the HttpOnly refresh cookie — JS never touches it directly.
     Returns a fresh short-lived access token in the JSON body.
     """
@@ -139,7 +139,7 @@ def refresh_access_token(
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
 
-    # ✅ Rotate the refresh token on each use (more secure)
+    #  Rotate the refresh token on each use (more secure)
     new_refresh_token = create_refresh_token(
         data={"sub": user.email},
         expires_delta=timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
@@ -161,7 +161,7 @@ def refresh_access_token(
 @router.post("/auth/logout")
 def logout(response: Response):
     """
-    ✅ Clears the HttpOnly refresh cookie on logout.
+     Clears the HttpOnly refresh cookie on logout.
     Frontend also clears the in-memory access token.
     """
     response.delete_cookie(
@@ -199,7 +199,7 @@ def forgot_password(
 
     user = db.query(User).filter(User.email == email).first()
 
-    # ✅ Always respond the same way — don't reveal whether the email exists
+    #  Always respond the same way — don't reveal whether the email exists
     if user and user.is_verified == "true":
         reset_token = secrets.token_urlsafe(32)
         user.password_reset_token = reset_token

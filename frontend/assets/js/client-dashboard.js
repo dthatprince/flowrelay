@@ -193,7 +193,7 @@ function getOfferStatusBadge(status) {
         'pending': '<span class="badge badge-warning">⏳ Pending</span>',
         'matched': '<span class="badge badge-info">🤝 Matched</span>',
         'in_progress': '<span class="badge badge-primary">🚚 In Progress</span>',
-        'completed': '<span class="badge badge-success">✅ Completed</span>',
+        'completed': '<span class="badge badge-success"> Completed</span>',
         'cancelled': '<span class="badge badge-danger">❌ Cancelled</span>'
     };
     return badges[status] || badges['pending'];
