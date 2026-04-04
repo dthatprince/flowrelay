@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+load_dotenv("/etc/secrets/env_file")
 
 # App environment
 ENV = os.getenv("ENV", "dev")
