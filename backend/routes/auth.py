@@ -93,7 +93,7 @@ def login(
         value=refresh_token,
         httponly=True,       # JS cannot read this
         secure=True,         # HTTPS only
-        samesite="strict",   # No cross-site sending
+        samesite="none",   # No cross-site sending
         max_age=60 * 60 * 24 * REFRESH_TOKEN_EXPIRE_DAYS,
         path="/"
     )
@@ -150,7 +150,7 @@ def refresh_access_token(
         value=new_refresh_token,
         httponly=True,
         secure=True,
-        samesite="strict",
+        samesite="none",
         max_age=60 * 60 * 24 * REFRESH_TOKEN_EXPIRE_DAYS,
         path="/"
     )
@@ -168,7 +168,7 @@ def logout(response: Response):
         key="refresh_token",
         httponly=True,
         secure=True,
-        samesite="strict",
+        samesite="none",
         path="/"
     )
     return {"message": "Logged out successfully"}
