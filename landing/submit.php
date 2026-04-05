@@ -22,7 +22,7 @@ define('TO_EMAIL',          'xxxxxxx');    // Where demo requests are sent
 define('FROM_EMAIL',        'xxxxxxx'); // Sending address (must match your domain)
 define('RATE_LIMIT_MAX',    5);                       // Max submissions per window
 define('RATE_LIMIT_WINDOW', 3600);                    // Window in seconds (3600 = 1 hour)
-define('RATE_LIMIT_FILE',   sys_get_temp_dir() . '/hozhopath_rl.json'); // Rate limit store
+define('RATE_LIMIT_FILE',   sys_get_temp_dir() . '/flowrelay_rl.json'); // Rate limit store
 // ───────────────────────────────────────────────────────────────
 
 session_start();
@@ -146,7 +146,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 // 8. Build and send email ─────────────────────────────────────────
 $subject = 'New Demo Request — ' . $first_name . ' ' . $last_name . ' (' . $agency . ')';
 
-$body  = "New demo request received from hozhopath.com\n";
+$body  = "New demo request received from flowrelay.com\n";
 $body .= str_repeat('─', 50) . "\n\n";
 $body .= "Name:         {$first_name} {$last_name}\n";
 $body .= "Agency:       {$agency}\n";
@@ -171,6 +171,6 @@ if ($sent) {
     respond(true, "Thank you! We'll be in touch shortly to schedule your demo.");
 } else {
     // Log server-side but don't expose detail to client
-    error_log('[Hozhopath] mail() failed for: ' . $email);
-    respond(false, 'There was a problem sending your request. Please email us directly at info@hozhopath.com', 500);
+    error_log('[Flow Relay] mail() failed for: ' . $email);
+    respond(false, 'There was a problem sending your request. Please email us directly at info@flowrelay.com', 500);
 }
