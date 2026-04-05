@@ -10,20 +10,19 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Flow Relay API", version="1.0.2")
 
-# CORS — allow_credentials=True is required for HttpOnly cookies to be sent/received.
-# Note: allow_origins cannot be ["*"] when allow_credentials=True — list origins explicitly.
+# CORS — allow_credentials=True is required for HttpOnly cookies to be sent cross-origin.
+# allow_origins CANNOT be ["*"] when allow_credentials=True — must list explicitly
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://flowrelay.onrender.com",
-        "https://dthatprince.github.io",
-        "https://dthatprince.github.io/",
-        #"http://localhost:3000",
-        #"http://localhost:8000",
-        #"http://127.0.0.1:3000",
-        #"http://127.0.0.1:8000",
+        "https://dthatprince.github.io",   # GitHub Pages frontend
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000",
     ],
-    allow_credentials=True,   # Required for cookies to work cross-origin
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"]
