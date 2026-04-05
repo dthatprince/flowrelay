@@ -1,7 +1,12 @@
 /* Custom Styles for Flow Relay App */
-body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+body,
+h1, h2, h3, h4, h5, h6,
+p, span, a, button, input, textarea, select, label,
+.navbar, .sidenav, .card, .btn, .form-control, .table {
+    font-family: 'Poppins', sans-serif !important;
+}
     
 /* Toast Notifications */
 .toast-notification {
@@ -348,4 +353,92 @@ body {
   stroke-dasharray: 50;
   stroke-dashoffset: 50;
   animation: checkmark 0.5s ease-in-out forwards;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR HEIGHT + SCROLL FIX
+═══════════════════════════════════════════════════════════════════ */
+
+.sidenav {
+  height: 100vh !important;
+  min-height: 100vh !important;
+}
+
+.sidenav .navbar-collapse {
+  height: calc(100vh - 4.875rem) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.sidenav .navbar-collapse::-webkit-scrollbar { width: 4px; }
+.sidenav .navbar-collapse::-webkit-scrollbar-track { background: transparent; }
+.sidenav .navbar-collapse::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE HAMBURGER STYLES
+═══════════════════════════════════════════════════════════════════ */
+
+#iconNavbarSidenav {
+  display: none !important;
+}
+@media (max-width: 1199.98px) {
+  #iconNavbarSidenav {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+.sidenav-toggler-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 18px;
+  height: 14px;
+}
+
+.sidenav-toggler-line {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.g-sidenav-pinned #iconNavbarSidenav .sidenav-toggler-line:first-child {
+  transform: translateY(6px) rotate(45deg);
+}
+.g-sidenav-pinned #iconNavbarSidenav .sidenav-toggler-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.g-sidenav-pinned #iconNavbarSidenav .sidenav-toggler-line:last-child {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE OVERLAY (darkens screen when sidebar is open)
+═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1199.98px) {
+  .g-sidenav-pinned::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1029;
+    animation: fadeInOverlay 0.2s ease;
+  }
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
