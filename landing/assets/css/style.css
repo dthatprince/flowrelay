@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════
-   HOZHOPATH — Stylesheet
-   hozhopath.com
+   Flow Relay— Stylesheet
+   Flow Relay.com
 ════════════════════════════════════════ */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -240,7 +240,7 @@ nav a:hover { color: var(--ink); background: var(--surface); }
 .sec-title.lgt { color: #fff; }
 
 
-/* ── WHY HOZHOPATH ── */
+/* ── WHY Flow Relay── */
 .why-section {
   padding: 100px 64px;
   background: var(--surface);

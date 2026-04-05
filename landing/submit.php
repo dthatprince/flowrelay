@@ -1,6 +1,6 @@
 <?php
 /**
- * Hozhopath — Demo Request Form Handler
+ * Flow Relay— Demo Request Form Handler
  * File: submit.php
  *
  * Security layers:
@@ -16,13 +16,13 @@
  */
 
 // ── CONFIG — edit these values ──────────────────────────────────
-define('RECAPTCHA_SECRET',  '6LdulogsAAAAAGMtnOkU8qySLH1sli5uygCT8ofR');       // From Google reCAPTCHA admin
+define('RECAPTCHA_SECRET',  'xxxxxxx');       // From Google reCAPTCHA admin
 define('RECAPTCHA_THRESHOLD', 0.5);                   // 0.0 (bot) to 1.0 (human) — 0.5 is a good default
-define('TO_EMAIL',          'info@hozhopath.com');    // Where demo requests are sent
-define('FROM_EMAIL',        'noreply@hozhopath.com'); // Sending address (must match your domain)
+define('TO_EMAIL',          'xxxxxxx');    // Where demo requests are sent
+define('FROM_EMAIL',        'xxxxxxx'); // Sending address (must match your domain)
 define('RATE_LIMIT_MAX',    5);                       // Max submissions per window
 define('RATE_LIMIT_WINDOW', 3600);                    // Window in seconds (3600 = 1 hour)
-define('RATE_LIMIT_FILE',   sys_get_temp_dir() . '/hozhopath_rl.json'); // Rate limit store
+define('RATE_LIMIT_FILE',   sys_get_temp_dir() . '/flowrelay_rl.json'); // Rate limit store
 // ───────────────────────────────────────────────────────────────
 
 session_start();
@@ -146,7 +146,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 // 8. Build and send email ─────────────────────────────────────────
 $subject = 'New Demo Request — ' . $first_name . ' ' . $last_name . ' (' . $agency . ')';
 
-$body  = "New demo request received from hozhopath.com\n";
+$body  = "New demo request received from flowrelay.com\n";
 $body .= str_repeat('─', 50) . "\n\n";
 $body .= "Name:         {$first_name} {$last_name}\n";
 $body .= "Agency:       {$agency}\n";
@@ -159,7 +159,7 @@ $body .= "Submitted:    " . date('Y-m-d H:i:s T') . "\n";
 $body .= "reCAPTCHA:    " . round(($rc_data['score'] ?? 0), 2) . " / 1.0\n";
 
 // 9. Headers — prevent injection by using pre-validated values only
-$headers  = "From: Hozhopath Forms <" . FROM_EMAIL . ">\r\n";
+$headers  = "From: Flow RelayForms <" . FROM_EMAIL . ">\r\n";
 $headers .= "Reply-To: {$first_name} {$last_name} <{$email}>\r\n";
 $headers .= "MIME-Version: 1.0\r\n";
 $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
@@ -171,6 +171,6 @@ if ($sent) {
     respond(true, "Thank you! We'll be in touch shortly to schedule your demo.");
 } else {
     // Log server-side but don't expose detail to client
-    error_log('[Hozhopath] mail() failed for: ' . $email);
-    respond(false, 'There was a problem sending your request. Please email us directly at info@hozhopath.com', 500);
+    error_log('[Flow Relay] mail() failed for: ' . $email);
+    respond(false, 'There was a problem sending your request. Please email us directly at info@flowrelay.com', 500);
 }
